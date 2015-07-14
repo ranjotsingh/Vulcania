@@ -326,7 +326,7 @@ int main()
 	textPressSpace.setColor(sf::Color(255, 255, 255));
 	textPressSpace.setPosition(320, 535);
 
-	menu.drawText();
+	menu.draw();
 
 	sf::Text drawInTextBox(textInTextBox, fontMain, 12);
 	drawInTextBox.setColor(sf::Color(255, 255, 255));
@@ -389,39 +389,43 @@ int main()
 		sf::Event Event;
 		while (Window.pollEvent(Event))
 		{
-			if (gamestate == MainMenu)
-			{
-				menu.loadText();
-			}
 			if (gamestate == StartMenu)
 			{
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+				if (Event.type == sf::Event::KeyPressed)
 				{
-					gamestate = MainMenu;
-					menu.textNewGame.setColor(sf::Color(204, 204, 0));
+					if (Event.key.code == sf::Keyboard::Space)
+					{
+						gamestate = MainMenu;
+						menu.textNewGame.setColor(sf::Color(204, 204, 0));
+					}
 				}
 			}
 			else if (gamestate == MainMenu)
 			{
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Return))
+				menu.navigate();
+				if (Event.type == sf::Event::KeyPressed)
 				{
-					if (menu.Option == menu.optionStartGame)
+					if (Event.key.code == sf::Keyboard::Return)
 					{
-						gamestate = InGame;
-						updateMenuFrame = false;
-						if (!SavedGameExists)
+						if (menu.Option == menu.optionStartGame)
 						{
-							std::ofstream file(saveFileName);
+							gamestate = InGame;
+							updateMenuFrame = false;
+							if (!SavedGameExists)
+							{
+								std::ofstream file(saveFileName);
+							}
+							if (gamePart == 0)
+							{
+								showArrow = true;
+								arrowFlash = true;
+							}
 						}
-						if (gamePart == 0)
+						else if (menu.Option == menu.optionQuit)
 						{
-							showArrow = true;
-							arrowFlash = true;
+							Window.close();
+							std::cout << "Test.\n\n";
 						}
-					}
-					else if (menu.Option == menu.optionQuit)
-					{
-						Window.close();
 					}
 				}
 			}

@@ -10,10 +10,10 @@ public:
 	enum Options { optionStartGame, optionOptions, optionQuit };
 	int Option;
 
-	void drawText();
-	void loadText();
+	void draw();
+	void navigate();
 
-	sf::Font fontNoodle;
+	//sf::Font fontNoodle;
 
 	sf::String menuNewGame;
 	sf::String menuContinueGame;
