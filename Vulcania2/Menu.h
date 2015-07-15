@@ -13,7 +13,7 @@ public:
 	void draw();
 	void navigate();
 
-	//sf::Font fontNoodle;
+	sf::Font fontNoodle;
 
 	sf::String menuNewGame;
 	sf::String menuContinueGame;
@@ -21,6 +21,7 @@ public:
 	sf::String menuQuit;
 	sf::String menuVersion;
 
+	//sf::Text textNewGame(menuNewGame, fontNoodle, 40);
 	sf::Text textNewGame;
 	sf::Text textContinueGame;
 	sf::Text textOptions;

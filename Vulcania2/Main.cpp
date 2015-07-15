@@ -703,13 +703,11 @@ int main()
 			Window.draw(logoname);
 			Window.draw(menu.textMenuVersion);
 			Window.draw(menu.textNewGame);
-			//Window.draw(textContinueGame);
 			Window.draw(menu.textOptions);
 			Window.draw(menu.textQuit);
 		}
 		else if (gamestate == InGame)
 		{
-			//Window.draw(map);
 			Window.draw(Grass);
 			Window.draw(BoundaryV0);
 			Window.draw(BoundaryV1);
