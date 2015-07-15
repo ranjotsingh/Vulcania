@@ -1,3 +1,4 @@
+
 #include "Menu.h"
 
 Menu::Menu()
@@ -18,7 +19,8 @@ Menu::~Menu()
 
 void Menu::draw()
 {
-	if (!fontNoodle.loadFromFile("fonts/noodle.ttf")) { std::cout << "Error: Game failed to load 'big_noodle_titling' font." << std::endl; }
+	if (!fontNoodle.loadFromFile("fonts/noodle.ttf")) { std::cout << "Error: Game failed to load 'noodle' font." << std::endl; }
+
 	textNewGame.setString(menuNewGame);
 	textNewGame.setFont(fontNoodle);
 	textNewGame.setCharacterSize(40);

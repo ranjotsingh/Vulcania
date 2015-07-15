@@ -277,11 +277,11 @@ int main()
 	if (!pedMailmanTexture.loadFromFile("images/peds/Mailman.png")) { std::cout << "Error: Game failed to load 'mailman' image." << std::endl; }
 
 	sf::Font fontNoodle;
-	if (!fontNoodle.loadFromFile("fonts/noodle.ttf")) { std::cout << "Error: Game failed to load 'big_noodle_titling' font." << std::endl; }
+	if (!fontNoodle.loadFromFile("fonts/noodle.ttf")) { std::cout << "Error: Game failed to load 'noodle' font." << std::endl; }
 	sf::Font fontViper;
 	if (!fontViper.loadFromFile("fonts/viper.ttf")) { std::cout << "Error: Game failed to load 'viper' font." << std::endl; }
 	sf::Font fontMain;
-	if (!fontMain.loadFromFile("fonts/arial.ttf")) { std::cout << "Error: Game failed to load 'lucon' font." << std::endl; }
+	if (!fontMain.loadFromFile("fonts/arial.ttf")) { std::cout << "Error: Game failed to load 'arial' font." << std::endl; }
 
 	player.setTexture(pTexture);
 	player.setPosition(713, 973);
