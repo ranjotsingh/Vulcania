@@ -327,6 +327,11 @@ int main()
 	textPressSpace.setPosition(320, 535);
 
 	menu.draw();
+	menu.textNewGame.setFont(fontNoodle);
+	menu.textContinueGame.setFont(fontNoodle);
+	menu.textOptions.setFont(fontNoodle);
+	menu.textQuit.setFont(fontNoodle);
+	menu.textMenuVersion.setFont(fontNoodle);
 
 	sf::Text drawInTextBox(textInTextBox, fontMain, 12);
 	drawInTextBox.setColor(sf::Color(255, 255, 255));
