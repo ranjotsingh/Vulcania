@@ -6,80 +6,14 @@
 #include "Misc.h"
 #include "Objects.h"
 #include "Buildings.h"
+#include "Objective.h"
 
-#define GameName "Vulcania: Commencement"
-sf::String Version = "0.1.1";
-sf::Vector2f screenDimensions(800, 600);
-
-Player player;
-Menu menu;
 Misc misc;
+Menu menu;
+Player player;
 Objects objects;
 Buildings buildings;
-
-sf::Vector2i source(1, Misc::Direction::Up);
-
-bool showObjectiveBox = true;
-bool showSignBox;
-std::string gameObjectiveCurrent = "None";
-
-int currentObjective = 0;
-int gamePart = 0;
-
-void loadFloor(sf::Texture& floorsTexture, sf::Sprite& floors)
-{
-	if (!floorsTexture.loadFromFile("images/map/floor.png")) { std::cout << "Error: Game failed to load 'floor' image." << std::endl; }
-	floorsTexture.setRepeated(true);
-	floors.setTextureRect(sf::IntRect(0, 0, 64, 64));
-	floors.setTexture(floorsTexture);
-}
-
-void drawFloor(std::string floorName, sf::Texture& floorsTexture, sf::Sprite& floors, int floorNumber, float floorX, float floorY, int floorW, int floorH)
-{
-	if (floorNumber == 0)
-	{
-		floors.setTextureRect(sf::IntRect(0, 0, floorW, floorH));
-		floors.setPosition(floorX, floorY);
-	}
-	else
-	{
-		std::cout << "Floor: '" << floorName << "' has failed to load. (invalid floor number)." << std::endl;
-	}
-}
-
-void loadBoundaryV(sf::Texture& boundaryVTexture, sf::Sprite& boundaryV)
-{
-	if (!boundaryVTexture.loadFromFile("images/map/treeboundvert.png")) { std::cout << "Error: Game failed to load 'treeboundvert' image." << std::endl; }
-	boundaryV.setTexture(boundaryVTexture);
-}
-
-void drawBoundaryV(std::string boundaryVName, sf::Texture& boundaryVTexture, sf::Sprite& boundaryV, float boundaryX, float boundaryY)
-{
-	boundaryV.setPosition(boundaryX, boundaryY);
-	float left = boundaryV.getGlobalBounds().left - 24;
-	float right = left + boundaryV.getGlobalBounds().width + 16;
-	float top = boundaryV.getGlobalBounds().top - 32;
-	float bottom = top + boundaryV.getGlobalBounds().height;
-	if (player.getPosition().x > left && player.getPosition().x < right && player.getPosition().y > top && player.getPosition().y < bottom)
-		player.setPosition(player.prevPos.x, player.prevPos.y);
-}
-
-void loadBoundaryH(sf::Texture& boundaryHTexture, sf::Sprite& boundaryH)
-{
-	if (!boundaryHTexture.loadFromFile("images/map/treeboundhoriz.png")) { std::cout << "Error: Game failed to load 'treeboundhoriz' image." << std::endl; }
-	boundaryH.setTexture(boundaryHTexture);
-}
-
-void drawBoundaryH(std::string boundaryHName, sf::Texture& boundaryHTexture, sf::Sprite& boundaryH, float boundaryX, float boundaryY)
-{
-	boundaryH.setPosition(boundaryX, boundaryY);
-	float left = boundaryH.getGlobalBounds().left - 24;
-	float right = left + boundaryH.getGlobalBounds().width + 16;
-	float top = boundaryH.getGlobalBounds().top - 32;
-	float bottom = top + boundaryH.getGlobalBounds().height;
-	if (player.getPosition().x > left && player.getPosition().x < right && player.getPosition().y > top && player.getPosition().y < bottom)
-		player.setPosition(player.prevPos.x, player.prevPos.y);
-}
+Objective objective;
 
 int main()
 {
@@ -91,7 +25,7 @@ int main()
 	float frameFlashCounter = 0, switchFlashFrame = 100, frameFlashSpeed = 400;
 
 	sf::RenderWindow Window;
-	Window.create(sf::VideoMode((int)screenDimensions.x, (int)screenDimensions.y), GameName, sf::Style::Titlebar | sf::Style::Close);
+	Window.create(sf::VideoMode((int)misc.screenDimensions.x, (int)misc.screenDimensions.y), "Vulcania: Commencement", sf::Style::Titlebar | sf::Style::Close);
 
 	Window.setFramerateLimit(60);
 	Window.setKeyRepeatEnabled(false);
@@ -139,10 +73,10 @@ int main()
 
 	sf::View view;
 
-	view.reset(sf::FloatRect(0, 0, screenDimensions.x, screenDimensions.y));
+	view.reset(sf::FloatRect(0, 0, misc.screenDimensions.x, misc.screenDimensions.y));
 	view.setViewport(sf::FloatRect(0, 0, 1.0f, 1.0f));
 
-	sf::Vector2f position(screenDimensions.x / 2, screenDimensions.y / 2);
+	sf::Vector2f position(misc.screenDimensions.x / 2, misc.screenDimensions.y / 2);
 
 	bool updateFrame = true;
 	bool updateMenuFrame = true;
@@ -179,7 +113,6 @@ int main()
 	logoname.setTexture(lnTexture);
 	logoname.setPosition(92, 100);
 
-
 	bool arrowFlash = false;
 	bool showArrow = false;
 	arrow.setTexture(signsTexture);
@@ -197,7 +130,7 @@ int main()
 
 	signbox.setTexture(boxesTexture);
 	signbox.setTextureRect(sf::IntRect(0, 147, 331, 488));
-	signbox.setPosition((screenDimensions.x - signbox.getGlobalBounds().width) / 2, (screenDimensions.y - signbox.getGlobalBounds().height) / 2);
+	signbox.setPosition((misc.screenDimensions.x - signbox.getGlobalBounds().width) / 2, (misc.screenDimensions.y - signbox.getGlobalBounds().height) / 2);
 
 	pedMailman.setTexture(pedMailmanTexture);
 
@@ -224,7 +157,7 @@ int main()
 	textGameObjective.setColor(sf::Color(255, 255, 255));
 	textGameObjective.setPosition((objectivebox.getLocalBounds().width - textGameObjective.getGlobalBounds().width) / 2 + objectivebox.getPosition().x, 7);
 
-	sf::Text textgameObjectiveCurrent(gameObjectiveCurrent, fontMain, 34);
+	sf::Text textgameObjectiveCurrent(objective.objCurrentText, fontMain, 34);
 	textgameObjectiveCurrent.setScale(0.29f, 0.29f);
 	textgameObjectiveCurrent.setColor(sf::Color(255, 255, 255));
 	textgameObjectiveCurrent.setPosition((objectivebox.getLocalBounds().width - textgameObjectiveCurrent.getGlobalBounds().width) / 2 + objectivebox.getPosition().x, (objectivebox.getLocalBounds().height - textgameObjectiveCurrent.getGlobalBounds().height) / 2 + objectivebox.getPosition().y);
@@ -237,7 +170,7 @@ int main()
 	sf::Texture BoundaryH;
 
 	sf::Sprite Grass;
-	loadFloor(Floor, Grass);
+	misc.loadFloor(Floor, Grass);
 
 	sf::Sprite MainHouse;
 	buildings.load(Building, MainHouse);
@@ -256,17 +189,17 @@ int main()
 	objects.load(Object, Object0);
 
 	sf::Sprite BoundaryV0;
-	loadBoundaryV(BoundaryV, BoundaryV0);
+	misc.loadBoundaryV(BoundaryV, BoundaryV0);
 	sf::Sprite BoundaryV1;
-	loadBoundaryV(BoundaryV, BoundaryV1);
+	misc.loadBoundaryV(BoundaryV, BoundaryV1);
 	sf::Sprite BoundaryH0;
-	loadBoundaryH(BoundaryH, BoundaryH0);
+	misc.loadBoundaryH(BoundaryH, BoundaryH0);
 	sf::Sprite BoundaryH1;
-	loadBoundaryH(BoundaryH, BoundaryH1);
+	misc.loadBoundaryH(BoundaryH, BoundaryH1);
 
 	sf::Vector2f direction;
 	float pedSource;
-	int Part = 0;
+	int subPart = 0;
 
 	sf::Text text("", fontMain, 30);
 	text.setColor(sf::Color(0, 0, 0));
@@ -303,7 +236,7 @@ int main()
 							{
 								std::ofstream file(saveFileName);
 							}
-							if (gamePart == 0)
+							if (objective.part == 0)
 							{
 								showArrow = true;
 								arrowFlash = true;
@@ -324,29 +257,29 @@ int main()
 					if (Event.key.code == sf::Keyboard::X)
 					{
 						std::cout << "PlayerX: " << player.getPosition().x << " PlayerY: " << player.getPosition().y << " player.moving: " << player.moving << std::endl;
-						std::cout << "GamePart: " << gamePart << " player.frozen: " << player.frozen << std::endl;
+						std::cout << "GamePart: " << objective.part << " player.frozen: " << player.frozen << std::endl;
 					}
 					else if (Event.key.code == sf::Keyboard::Space)
 					{
-						if (gamePart == 2 && Part >= 0 && Part <= 2)
+						if (objective.part == 2 && subPart >= 0 && subPart <= 2)
 						{
-							Part += 1;
+							subPart += 1;
 						}
 					}
 					else if (Event.key.code == sf::Keyboard::Return)
 					{
-						if (gamePart == 2 && Part == 3)
+						if (objective.part == 2 && subPart == 3)
 						{
 							std::cout << "Game has saved information into the game save file." << std::endl;
-							showSignBox = false;
+							misc.showSignBox = false;
 							player.frozen = false;
-							gamePart = 3;
+							objective.part = 3;
 						}
 					}
 				}
 				else if (Event.type == sf::Event::TextEntered)
 				{
-					if (gamePart == 2 && Part == 3)
+					if (objective.part == 2 && subPart == 3)
 					{
 						if (Event.text.unicode >= 32 && Event.text.unicode <= 126 && sentence.getSize() <= 14)
 							sentence += (char)Event.text.unicode;
@@ -400,26 +333,26 @@ int main()
 			}
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 			{
-				source.y = Misc::Direction::Up;
+				misc.source.y = Misc::Direction::Up;
 				player.moving = true;
 				if (player.getPosition().y >= 0)
 					player.move(0, -moveSpeed * clock.getElapsedTime().asSeconds());
 			}
 			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 			{
-				source.y = Misc::Direction::Down;
+				misc.source.y = Misc::Direction::Down;
 				player.moving = true;
 				player.move(0, moveSpeed * clock.getElapsedTime().asSeconds());
 			}
 			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 			{
-				source.y = Misc::Direction::Right;
+				misc.source.y = Misc::Direction::Right;
 				player.moving = true;
 				player.move(moveSpeed * clock.getElapsedTime().asSeconds(), 0);
 			}
 			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 			{
-				source.y = Misc::Direction::Left;
+				misc.source.y = Misc::Direction::Left;
 				player.moving = true;
 				if (player.getPosition().x >= 0)
 					player.move(-moveSpeed * clock.getElapsedTime().asSeconds(), 0);
@@ -435,20 +368,20 @@ int main()
 			}
 		}
 
-		if (gamePart == 0)
+		if (objective.part == 0)
 		{
-			gameObjectiveCurrent = "Go home.";
+			objective.objCurrentText = "Go home.";
 			if (player.getPosition().x >= 820 && player.getPosition().x <= 851 && player.getPosition().y >= 510 && player.getPosition().y <= 538)
 			{
-				gamePart = 1;
+				objective.part = 1;
 				pedMailman.setPosition(1114, player.getPosition().y);
 				direction = player.getPosition() - pedMailman.getPosition();
 				pedSource = 0;
 			}
 		}
-		else if (gamePart == 1)
+		else if (objective.part == 1)
 		{
-			source.y = Misc::Direction::Right;
+			misc.source.y = Misc::Direction::Right;
 			player.frozen = true;
 			showArrow = false;
 			arrowFlash = false;
@@ -465,47 +398,47 @@ int main()
 			{
 				showExclaim = false;
 				misc.showTextBox = true;
-				gamePart = 2;
-				Part = 0;
+				objective.part = 2;
+				subPart = 0;
 			}
 		}
-		else if (gamePart == 2)
+		else if (objective.part == 2)
 		{
 			player.frozen = true;
-			if (Part == 0)
+			if (subPart == 0)
 			{
 				misc.textInTextBox = "MAILMAN: Do you live here? I have a package for this address.";
 				misc.showTextBox = true;
 			}
-			else if (Part == 1)
+			else if (subPart == 1)
 			{
 				misc.textInTextBox = "MAILMAN hands you the package.";
 				misc.showTextBox = true;
 			}
-			else if (Part == 2)
+			else if (subPart == 2)
 			{
 				misc.textInTextBox = "MAILMAN: Sign here with your name.";
 				misc.showTextBox = true;
 			}
-			else if (Part == 3)
+			else if (subPart == 3)
 			{
-				gameObjectiveCurrent = "Sign with your name.";
-				showSignBox = true;
+				objective.objCurrentText = "Sign with your name.";
+				misc.showSignBox = true;
 				misc.showTextBox = false;
 			}
 		}
 		else
 		{
-			gameObjectiveCurrent = "None.";
+			objective.objCurrentText = "None.";
 		}
 
 		frameCounter = (updateFrame) ? frameCounter + frameSpeed * clock.restart().asSeconds() : 0;
 		if (frameCounter >= switchFrame && player.moving == true)
 		{
 			frameCounter = 0;
-			source.x++;
-			if (source.x * 32 >= (int)pTexture.getSize().x)
-				source.x = 0;
+			misc.source.x++;
+			if (misc.source.x * 32 >= (int)pTexture.getSize().x)
+				misc.source.x = 0;
 		}
 
 		framePedMovementCounter = (updatePedMovementFrame) ? framePedMovementCounter + framePedMovementSpeed * clockPedMovement.restart().asSeconds() : 0;
@@ -515,7 +448,7 @@ int main()
 		}
 
 		// Drawing the map textures
-		drawFloor("Grass", Floor, Grass, 0, 0, 0, 50000, 50000);
+		misc.drawFloor("Grass", Floor, Grass, 0, 0, 0, 50000, 50000);
 
 		buildings.draw("Main House", Building, MainHouse, 0, 760, 420);
 		buildings.draw("House0", Building, House0, 1, 928, 431);
@@ -527,10 +460,10 @@ int main()
 
 		objects.draw("Object0", Object, Object0, 0, 730, 475);
 
-		drawBoundaryV("BoundaryV0", BoundaryV, BoundaryV0, 0, 0);
-		drawBoundaryV("BoundaryV1", BoundaryV, BoundaryV1, 0, 991);
-		drawBoundaryH("BoundaryH0", BoundaryH, BoundaryH0, 575, 0);
-		drawBoundaryH("BoundaryH1", BoundaryH, BoundaryH1, 1150, 0);
+		misc.drawBoundaryV("BoundaryV0", BoundaryV, BoundaryV0, 0, 0);
+		misc.drawBoundaryV("BoundaryV1", BoundaryV, BoundaryV1, 0, 991);
+		misc.drawBoundaryH("BoundaryH0", BoundaryH, BoundaryH0, 575, 0);
+		misc.drawBoundaryH("BoundaryH1", BoundaryH, BoundaryH1, 1150, 0);
 
 		player.moving = false;
 
@@ -564,12 +497,12 @@ int main()
 
 		Window.setView(view);
 
-		player.setTextureRect(sf::IntRect(source.x * 32, source.y * 32, 32, 32));
+		player.setTextureRect(sf::IntRect(misc.source.x * 32, misc.source.y * 32, 32, 32));
 		background.setTextureRect(sf::IntRect(0, backgroundCurrentFrame * 600, 800, 600));
 
 		misc.drawInTextBox.setString(misc.textInTextBox);
 		misc.drawInTextBox.setPosition((misc.textbox.getLocalBounds().width - misc.drawInTextBox.getGlobalBounds().width) / 2 + misc.textbox.getPosition().x, (misc.textbox.getLocalBounds().height - 2 * misc.drawInTextBox.getGlobalBounds().height) / 2 + misc.textbox.getPosition().y);
-		textgameObjectiveCurrent.setString(gameObjectiveCurrent);
+		textgameObjectiveCurrent.setString(objective.objCurrentText);
 		textgameObjectiveCurrent.setPosition((objectivebox.getLocalBounds().width - textgameObjectiveCurrent.getGlobalBounds().width) / 2 + objectivebox.getPosition().x, (objectivebox.getLocalBounds().height - textgameObjectiveCurrent.getGlobalBounds().height) / 2 + objectivebox.getPosition().y);
 
 		if (misc.gamestate == Misc::GameState::StartMenu)
@@ -600,7 +533,7 @@ int main()
 			Window.draw(House3);
 			Window.draw(House4);
 			Window.draw(Object0);
-			if (gamePart >= 1 && gamePart <= 2)
+			if (objective.part >= 1 && objective.part <= 2)
 			{
 				Window.draw(pedMailman);
 			}
@@ -620,14 +553,14 @@ int main()
 				Window.draw(misc.textbox);
 				Window.draw(misc.drawInTextBox);
 			}
-			if (showObjectiveBox == true)
+			if (misc.showObjectiveBox == true)
 			{
 				Window.draw(objectivebox);
 				Window.draw(textGameObjective);
-				if (currentObjective == 0)
+				if (objective.currentObj == 0)
 					Window.draw(textgameObjectiveCurrent);
 			}
-			if (showSignBox == true)
+			if (misc.showSignBox == true)
 			{
 				Window.draw(signbox);
 				Window.draw(text);

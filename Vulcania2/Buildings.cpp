@@ -76,7 +76,7 @@ void Buildings::door(std::string doorName, float doorX, float doorY)
 	float doorRadius = 10;
 	if (player.getPosition().x >= doorX - doorRadius && player.getPosition().x <= doorX + doorRadius && player.getPosition().y >= doorY - 1 && player.getPosition().y <= doorY + 2)
 	{
-		if (misc.gamestate == Misc::GameState::InGame && player.moving == true && source.y == Misc::Direction::Up && player.enteredDoor == false)
+		if (misc.gamestate == Misc::GameState::InGame && player.moving == true && misc.source.y == Misc::Direction::Up && player.enteredDoor == false)
 		{
 			if (misc.lockMode == false)
 			{

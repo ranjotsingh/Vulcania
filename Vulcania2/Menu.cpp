@@ -1,4 +1,7 @@
 #include "Menu.h"
+#include "Misc.h"
+
+extern Misc misc;
 
 Menu::Menu()
 {
@@ -8,7 +11,7 @@ Menu::Menu()
 	menuContinueGame = "Continue Game";
 	menuOptions = "Options";
 	menuQuit = "Quit";
-	menuVersion = "Version: 0.1.1";
+	menuVersion = "Version: " + misc.version;
 }
 
 
