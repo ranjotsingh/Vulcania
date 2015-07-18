@@ -1,5 +1,3 @@
-#include <SFML/Graphics.hpp>
-#include <iostream>
 #include "Misc.h"
 #include "Player.h"
 
@@ -9,7 +7,6 @@ extern sf::Vector2f screenDimensions;
 Misc::Misc()
 {
 	version = "0.1.1";
-
 	screenDimensions.x = 800;
 	screenDimensions.y = 600;
 
@@ -21,8 +18,14 @@ Misc::Misc()
 	lockMode = true;
 	fastMode = false;
 
+	paused = false;
+
 	showObjectiveBox = true;
 	showSignBox = false;
+
+	arrowFlash = false;
+	showArrow = false;
+	showExclaim = false;
 
 	textInTextBox = "";
 	showTextBox = false;
@@ -42,6 +45,27 @@ void Misc::loadTextBox()
 	drawInTextBox.setScale(0.35f, 0.35f);
 	drawInTextBox.setColor(sf::Color(255, 255, 255));
 	drawInTextBox.setPosition((textbox.getLocalBounds().width - drawInTextBox.getLocalBounds().width) / 2 + textbox.getPosition().x, (textbox.getLocalBounds().height - 2 * drawInTextBox.getLocalBounds().height) / 2 + textbox.getPosition().y);
+}
+
+void Misc::loadBackground(sf::Texture& backgroundsTexture, sf::Sprite& backgrounds)
+{
+	if (!backgroundsTexture.loadFromFile("images/misc/grey.png")) { std::cout << "Error: Game failed to load 'grey' image." << std::endl; }
+	backgroundsTexture.setRepeated(true);
+	backgrounds.setTextureRect(sf::IntRect(0, 0, 1, 1));
+	backgrounds.setTexture(backgroundsTexture);
+}
+
+void Misc::drawBackground(std::string backgroundName, sf::Texture& backgroundsTexture, sf::Sprite& backgrounds, int backgroundNumber, float backgroundX, float backgroundY, float backgroundW, float backgroundH)
+{
+	if (backgroundNumber == 0)
+	{
+		backgrounds.setTextureRect(sf::IntRect(0, 0, (int)backgroundW, (int)backgroundH));
+		backgrounds.setPosition(backgroundX, backgroundY);
+	}
+	else
+	{
+		std::cout << "Background: '" << backgroundName << "' has failed to load. (invalid background number)." << std::endl;
+	}
 }
 
 void Misc::loadFloor(sf::Texture& floorsTexture, sf::Sprite& floors)

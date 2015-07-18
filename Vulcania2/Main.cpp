@@ -1,12 +1,14 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <fstream>
+
 #include "Player.h"
 #include "Menu.h"
 #include "Misc.h"
 #include "Objects.h"
 #include "Buildings.h"
 #include "Objective.h"
+#include "Ped.h"
 
 Misc misc;
 Menu menu;
@@ -14,6 +16,18 @@ Player player;
 Objects objects;
 Buildings buildings;
 Objective objective;
+
+Ped mailman;
+
+void loadingScreen(sf::RenderWindow &Window)
+{
+	sf::Font fontNoodle;
+	if (!fontNoodle.loadFromFile("fonts/noodle.ttf")) { std::cout << "Error: Game failed to load 'noodle' font." << std::endl; }
+	sf::Text textLoading("Loading...", fontNoodle, 20);
+	textLoading.setPosition((misc.screenDimensions.x - textLoading.getGlobalBounds().width) / 2, 535);
+	Window.draw(textLoading);
+	Window.display();
+}
 
 int main()
 {
@@ -26,9 +40,11 @@ int main()
 
 	sf::RenderWindow Window;
 	Window.create(sf::VideoMode((int)misc.screenDimensions.x, (int)misc.screenDimensions.y), "Vulcania: Commencement", sf::Style::Titlebar | sf::Style::Close);
-
 	Window.setFramerateLimit(60);
 	Window.setKeyRepeatEnabled(false);
+
+	sf::Thread loadingThread(loadingScreen, std::ref(Window));
+	loadingThread.launch();
 
 	std::string saveFileName = "save/save001.sav";
 	std::ifstream saveFile(saveFileName);
@@ -55,12 +71,10 @@ int main()
 	sf::Sprite signbox;
 
 	sf::Texture pedMailmanTexture;
-	sf::Sprite pedMailman;
 
 	sf::Clock clock;
 	sf::Clock clockMenu;
 	sf::Clock clockFlash;
-	sf::Clock clockPedMovement;
 	sf::Clock totalGameTime;
 
 	float moveSpeed;
@@ -69,14 +83,10 @@ int main()
 	else if (misc.fastMode == true)
 		moveSpeed = 500.0f;
 
-	float movePedSpeed = 0.35f;
-
 	sf::View view;
 
 	view.reset(sf::FloatRect(0, 0, misc.screenDimensions.x, misc.screenDimensions.y));
 	view.setViewport(sf::FloatRect(0, 0, 1.0f, 1.0f));
-
-	sf::Vector2f position(misc.screenDimensions.x / 2, misc.screenDimensions.y / 2);
 
 	bool updateFrame = true;
 	bool updateMenuFrame = true;
@@ -113,14 +123,11 @@ int main()
 	logoname.setTexture(lnTexture);
 	logoname.setPosition(92, 100);
 
-	bool arrowFlash = false;
-	bool showArrow = false;
 	arrow.setTexture(signsTexture);
 	arrow.setTextureRect(sf::IntRect(0, 0, 10, 18));
 	arrow.setPosition(852, 515);
 	arrow.setRotation(180);
 
-	bool showExclaim = false;
 	exclaim.setTexture(signsTexture);
 	exclaim.setTextureRect(sf::IntRect(15, 0, 20, 20));
 
@@ -132,12 +139,12 @@ int main()
 	signbox.setTextureRect(sf::IntRect(0, 147, 331, 488));
 	signbox.setPosition((misc.screenDimensions.x - signbox.getGlobalBounds().width) / 2, (misc.screenDimensions.y - signbox.getGlobalBounds().height) / 2);
 
-	pedMailman.setTexture(pedMailmanTexture);
+	mailman.setTexture(pedMailmanTexture);
 
 	sf::String startingPressSpace = "Press space to start game.";
 	sf::Text textPressSpace(startingPressSpace, fontNoodle, 20);
 	textPressSpace.setColor(sf::Color(255, 255, 255));
-	textPressSpace.setPosition(320, 535);
+	textPressSpace.setPosition((misc.screenDimensions.x - textPressSpace.getGlobalBounds().width) / 2, 535);
 
 	menu.draw();
 	menu.textNewGame.setFont(fontNoodle);
@@ -165,12 +172,16 @@ int main()
 	// Loading the map textures
 	sf::Texture Building;
 	sf::Texture Floor;
+	sf::Texture Background;
 	sf::Texture Object;
 	sf::Texture BoundaryV;
 	sf::Texture BoundaryH;
 
 	sf::Sprite Grass;
 	misc.loadFloor(Floor, Grass);
+
+	sf::Sprite Grey;
+	misc.loadBackground(Background, Grey);
 
 	sf::Sprite MainHouse;
 	buildings.load(Building, MainHouse);
@@ -197,13 +208,11 @@ int main()
 	sf::Sprite BoundaryH1;
 	misc.loadBoundaryH(BoundaryH, BoundaryH1);
 
-	sf::Vector2f direction;
-	float pedSource;
-	int subPart = 0;
-
 	sf::Text text("", fontMain, 30);
 	text.setColor(sf::Color(0, 0, 0));
 	sf::String sentence;
+
+	loadingThread.terminate();
 
 	while (Window.isOpen())
 	{
@@ -238,19 +247,18 @@ int main()
 							}
 							if (objective.part == 0)
 							{
-								showArrow = true;
-								arrowFlash = true;
+								misc.showArrow = true;
+								misc.arrowFlash = true;
 							}
 						}
 						else if (menu.Option == menu.optionQuit)
 						{
 							Window.close();
-							std::cout << "Test.\n\n";
 						}
 					}
 				}
 			}
-			else if (misc.gamestate == Misc::GameState::InGame)
+			else if (misc.gamestate == Misc::GameState::InGame && misc.paused == false)
 			{
 				if (Event.type == sf::Event::KeyPressed)
 				{
@@ -259,16 +267,22 @@ int main()
 						std::cout << "PlayerX: " << player.getPosition().x << " PlayerY: " << player.getPosition().y << " player.moving: " << player.moving << std::endl;
 						std::cout << "GamePart: " << objective.part << " player.frozen: " << player.frozen << std::endl;
 					}
+					else if (Event.key.code == sf::Keyboard::P || Event.key.code == sf::Keyboard::Escape)
+					{
+						std::cout << "Paused." << std::endl;
+						misc.paused = true;
+						player.frozen = true;
+					}
 					else if (Event.key.code == sf::Keyboard::Space)
 					{
-						if (objective.part == 2 && subPart >= 0 && subPart <= 2)
+						if (objective.part == 2 && objective.subPart >= 0 && objective.subPart <= 2)
 						{
-							subPart += 1;
+							objective.subPart += 1;
 						}
 					}
 					else if (Event.key.code == sf::Keyboard::Return)
 					{
-						if (objective.part == 2 && subPart == 3)
+						if (objective.part == 2 && objective.subPart == 3)
 						{
 							std::cout << "Game has saved information into the game save file." << std::endl;
 							misc.showSignBox = false;
@@ -279,7 +293,7 @@ int main()
 				}
 				else if (Event.type == sf::Event::TextEntered)
 				{
-					if (objective.part == 2 && subPart == 3)
+					if (objective.part == 2 && objective.subPart == 3)
 					{
 						if (Event.text.unicode >= 32 && Event.text.unicode <= 126 && sentence.getSize() <= 14)
 							sentence += (char)Event.text.unicode;
@@ -291,6 +305,20 @@ int main()
 					}
 				}
 			}
+
+			if (misc.gamestate == Misc::GameState::InGame && misc.paused == true)
+			{
+				if (Event.type == sf::Event::KeyPressed)
+				{
+					if (Event.key.code == sf::Keyboard::Return)
+					{
+						std::cout << "Resumed." << std::endl;
+						misc.paused = false;
+						player.frozen = false;
+					}
+				}
+			}
+
 			switch (Event.type)
 			{
 			case sf::Event::Closed:
@@ -331,6 +359,7 @@ int main()
 				moveSpeed = 100.0f;
 				frameSpeed = 500;
 			}
+
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 			{
 				misc.source.y = Misc::Direction::Up;
@@ -359,7 +388,7 @@ int main()
 			}
 		}
 
-		if (misc.gamestate == Misc::GameState::InGame && misc.showTextBox == true)
+		if (misc.gamestate == Misc::GameState::InGame && misc.showTextBox == true && misc.paused == false)
 		{
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
 			{
@@ -368,69 +397,7 @@ int main()
 			}
 		}
 
-		if (objective.part == 0)
-		{
-			objective.objCurrentText = "Go home.";
-			if (player.getPosition().x >= 820 && player.getPosition().x <= 851 && player.getPosition().y >= 510 && player.getPosition().y <= 538)
-			{
-				objective.part = 1;
-				pedMailman.setPosition(1114, player.getPosition().y);
-				direction = player.getPosition() - pedMailman.getPosition();
-				pedSource = 0;
-			}
-		}
-		else if (objective.part == 1)
-		{
-			misc.source.y = Misc::Direction::Right;
-			player.frozen = true;
-			showArrow = false;
-			arrowFlash = false;
-			showExclaim = true;
-			if (pedMailman.getPosition().x >= player.getPosition().x + 26)
-			{
-				pedMailman.setTextureRect(sf::IntRect((int)pedSource * 32, (int)Misc::Direction::Left * 32, 32, 32));
-				pedMailman.move(movePedSpeed * direction * clockPedMovement.getElapsedTime().asSeconds());
-				pedSource++;
-				if (pedSource * 32 >= pedMailmanTexture.getSize().x)
-					pedSource = 0;
-			}
-			else
-			{
-				showExclaim = false;
-				misc.showTextBox = true;
-				objective.part = 2;
-				subPart = 0;
-			}
-		}
-		else if (objective.part == 2)
-		{
-			player.frozen = true;
-			if (subPart == 0)
-			{
-				misc.textInTextBox = "MAILMAN: Do you live here? I have a package for this address.";
-				misc.showTextBox = true;
-			}
-			else if (subPart == 1)
-			{
-				misc.textInTextBox = "MAILMAN hands you the package.";
-				misc.showTextBox = true;
-			}
-			else if (subPart == 2)
-			{
-				misc.textInTextBox = "MAILMAN: Sign here with your name.";
-				misc.showTextBox = true;
-			}
-			else if (subPart == 3)
-			{
-				objective.objCurrentText = "Sign with your name.";
-				misc.showSignBox = true;
-				misc.showTextBox = false;
-			}
-		}
-		else
-		{
-			objective.objCurrentText = "None.";
-		}
+		objective.initiate();
 
 		frameCounter = (updateFrame) ? frameCounter + frameSpeed * clock.restart().asSeconds() : 0;
 		if (frameCounter >= switchFrame && player.moving == true)
@@ -441,7 +408,7 @@ int main()
 				misc.source.x = 0;
 		}
 
-		framePedMovementCounter = (updatePedMovementFrame) ? framePedMovementCounter + framePedMovementSpeed * clockPedMovement.restart().asSeconds() : 0;
+		framePedMovementCounter = (updatePedMovementFrame) ? framePedMovementCounter + framePedMovementSpeed * mailman.clockMovement.restart().asSeconds() : 0;
 		if (framePedMovementCounter >= switchPedMovementFrame)
 		{
 			framePedMovementCounter = 0;
@@ -449,6 +416,8 @@ int main()
 
 		// Drawing the map textures
 		misc.drawFloor("Grass", Floor, Grass, 0, 0, 0, 50000, 50000);
+
+		misc.drawBackground("Grey", Background, Grey, 0, 0, 0, misc.screenDimensions.x, misc.screenDimensions.y);
 
 		buildings.draw("Main House", Building, MainHouse, 0, 760, 420);
 		buildings.draw("House0", Building, House0, 1, 928, 431);
@@ -468,13 +437,13 @@ int main()
 		player.moving = false;
 
 		frameFlashCounter = (updateFlashFrame) ? frameFlashCounter + frameFlashSpeed * clockFlash.restart().asSeconds() : 0;
-		if (frameFlashCounter >= switchFlashFrame && showArrow == true)
+		if (frameFlashCounter >= switchFlashFrame && misc.showArrow == true)
 		{
 			frameFlashCounter = 0;
-			if (arrowFlash == true)
-				arrowFlash = false;
+			if (misc.arrowFlash == true)
+				misc.arrowFlash = false;
 			else
-				arrowFlash = true;
+				misc.arrowFlash = true;
 		}
 
 		frameMenuCounter = (updateMenuFrame) ? frameMenuCounter + frameMenuSpeed * clockMenu.restart().asSeconds() : 0;
@@ -487,13 +456,7 @@ int main()
 				backgroundCurrentFrame = 0;
 		}
 
-		if (misc.gamestate == Misc::GameState::InGame)
-		{
-			position.x = player.getPosition().x;
-			position.y = player.getPosition().y;
-		}
-
-		view.setCenter(position);
+		if (misc.gamestate == Misc::GameState::InGame) { view.setCenter(player.getPosition()); }
 
 		Window.setView(view);
 
@@ -533,20 +496,15 @@ int main()
 			Window.draw(House3);
 			Window.draw(House4);
 			Window.draw(Object0);
-			if (objective.part >= 1 && objective.part <= 2)
-			{
-				Window.draw(pedMailman);
-			}
-			Window.draw(player);
-			if (arrowFlash == true && showArrow == true)
-			{
-				Window.draw(arrow);
-			}
-			if (showExclaim == true)
+			if (objective.part >= 1 && objective.part <= 2) { Window.draw(mailman); }
+			if (misc.arrowFlash == true && misc.showArrow == true) { Window.draw(arrow); }
+			if (misc.showExclaim == true)
 			{
 				exclaim.setPosition(player.getPosition().x + 8, player.getPosition().y - 25);
 				Window.draw(exclaim);
 			}
+			Window.draw(player);
+
 			Window.setView(Window.getDefaultView());
 			if (misc.showTextBox == true)
 			{
@@ -557,13 +515,16 @@ int main()
 			{
 				Window.draw(objectivebox);
 				Window.draw(textGameObjective);
-				if (objective.currentObj == 0)
-					Window.draw(textgameObjectiveCurrent);
+				if (objective.currentObj == 0) { Window.draw(textgameObjectiveCurrent); }
 			}
 			if (misc.showSignBox == true)
 			{
 				Window.draw(signbox);
 				Window.draw(text);
+			}
+			if (misc.paused == true)
+			{
+				Window.draw(Grey);
 			}
 			Window.setView(view);
 		}

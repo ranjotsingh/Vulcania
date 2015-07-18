@@ -36,6 +36,9 @@
     <ClCompile Include="Objective.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Ped.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Player.h">
@@ -54,6 +57,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Objective.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ped.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

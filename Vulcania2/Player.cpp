@@ -1,6 +1,5 @@
 #include "Player.h"
 
-
 Player::Player()
 {
 	moving = false;
@@ -8,7 +7,6 @@ Player::Player()
 	enteredDoor = false;
 	frozen = false;
 }
-
 
 Player::~Player()
 {

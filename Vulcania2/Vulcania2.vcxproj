@@ -87,6 +87,7 @@
     <ClCompile Include="Misc.cpp" />
     <ClCompile Include="Objective.cpp" />
     <ClCompile Include="Objects.cpp" />
+    <ClCompile Include="Ped.cpp" />
     <ClCompile Include="Player.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -95,6 +96,7 @@
     <ClInclude Include="Misc.h" />
     <ClInclude Include="Objective.h" />
     <ClInclude Include="Objects.h" />
+    <ClInclude Include="Ped.h" />
     <ClInclude Include="Player.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

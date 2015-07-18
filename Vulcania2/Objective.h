@@ -9,5 +9,8 @@ public:
 
 	int currentObj;
 	int part;
+	int subPart;
 	std::string objCurrentText;
+
+	void initiate();
 };

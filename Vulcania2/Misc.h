@@ -9,7 +9,6 @@ public:
 	~Misc();
 
 	sf::String version;
-
 	sf::Vector2f screenDimensions;
 
 	int gamestate;
@@ -21,8 +20,14 @@ public:
 	bool lockMode;
 	bool fastMode;
 
+	bool paused;
+
 	bool showObjectiveBox;
 	bool showSignBox;
+
+	bool arrowFlash;
+	bool showArrow;
+	bool showExclaim;
 
 	sf::Sprite textbox;
 	std::string textInTextBox;
@@ -30,6 +35,9 @@ public:
 	bool showTextBox;
 
 	void loadTextBox();
+
+	void loadBackground(sf::Texture& backgroundsTexture, sf::Sprite& backgrounds);
+	void drawBackground(std::string backgroundName, sf::Texture& backgroundsTexture, sf::Sprite& backgrounds, int backgroundNumber, float backgroundX, float backgroundY, float backgroundW, float backgroundH);
 
 	void loadFloor(sf::Texture& floorsTexture, sf::Sprite& floors);
 	void drawFloor(std::string floorName, sf::Texture& floorsTexture, sf::Sprite& floors, int floorNumber, float floorX, float floorY, int floorW, int floorH);
