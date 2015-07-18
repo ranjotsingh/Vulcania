@@ -6,6 +6,7 @@ Player::Player()
 	running = false;
 	enteredDoor = false;
 	frozen = false;
+	wasFrozen = false;
 }
 
 Player::~Player()

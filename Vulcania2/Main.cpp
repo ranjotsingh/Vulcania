@@ -17,7 +17,7 @@ Objects objects;
 Buildings buildings;
 Objective objective;
 
-Ped mailman;
+Ped courier;
 
 void loadingScreen(sf::RenderWindow &Window)
 {
@@ -40,7 +40,7 @@ int main()
 
 	sf::RenderWindow Window;
 	Window.create(sf::VideoMode((int)misc.screenDimensions.x, (int)misc.screenDimensions.y), "Vulcania: Commencement", sf::Style::Titlebar | sf::Style::Close);
-	Window.setFramerateLimit(60);
+	Window.setFramerateLimit(100);
 	Window.setKeyRepeatEnabled(false);
 
 	sf::Thread loadingThread(loadingScreen, std::ref(Window));
@@ -70,7 +70,7 @@ int main()
 	sf::Sprite objectivebox;
 	sf::Sprite signbox;
 
-	sf::Texture pedMailmanTexture;
+	sf::Texture pedCourierTexture;
 
 	sf::Clock clock;
 	sf::Clock clockMenu;
@@ -101,7 +101,7 @@ int main()
 	if (!signsTexture.loadFromFile("images/misc/signs.png")) { std::cout << "Error: Game failed to load 'signs' image." << std::endl; }
 	if (!boxesTexture.loadFromFile("images/boxes/boxes.png")) { std::cout << "Error: Game failed to load 'boxes' image." << std::endl; }
 
-	if (!pedMailmanTexture.loadFromFile("images/peds/Mailman.png")) { std::cout << "Error: Game failed to load 'mailman' image." << std::endl; }
+	if (!pedCourierTexture.loadFromFile("images/peds/Courier.png")) { std::cout << "Error: Game failed to load 'courier' image." << std::endl; }
 
 	sf::Font fontNoodle;
 	if (!fontNoodle.loadFromFile("fonts/noodle.ttf")) { std::cout << "Error: Game failed to load 'noodle' font." << std::endl; }
@@ -139,7 +139,7 @@ int main()
 	signbox.setTextureRect(sf::IntRect(0, 147, 331, 488));
 	signbox.setPosition((misc.screenDimensions.x - signbox.getGlobalBounds().width) / 2, (misc.screenDimensions.y - signbox.getGlobalBounds().height) / 2);
 
-	mailman.setTexture(pedMailmanTexture);
+	courier.setTexture(pedCourierTexture);
 
 	sf::String startingPressSpace = "Press space to start game.";
 	sf::Text textPressSpace(startingPressSpace, fontNoodle, 20);
@@ -203,10 +203,22 @@ int main()
 	misc.loadBoundaryV(BoundaryV, BoundaryV0);
 	sf::Sprite BoundaryV1;
 	misc.loadBoundaryV(BoundaryV, BoundaryV1);
+	sf::Sprite BoundaryV2;
+	misc.loadBoundaryV(BoundaryV, BoundaryV2);
 	sf::Sprite BoundaryH0;
 	misc.loadBoundaryH(BoundaryH, BoundaryH0);
 	sf::Sprite BoundaryH1;
 	misc.loadBoundaryH(BoundaryH, BoundaryH1);
+	sf::Sprite BoundaryH2;
+	misc.loadBoundaryH(BoundaryH, BoundaryH2);
+	sf::Sprite BoundaryH3;
+	misc.loadBoundaryH(BoundaryH, BoundaryH3);
+	sf::Sprite BoundaryH4;
+	misc.loadBoundaryH(BoundaryH, BoundaryH4);
+	sf::Sprite BoundaryH5;
+	misc.loadBoundaryH(BoundaryH, BoundaryH5);
+	sf::Sprite BoundaryH6;
+	misc.loadBoundaryH(BoundaryH, BoundaryH6);
 
 	sf::Text text("", fontMain, 30);
 	text.setColor(sf::Color(0, 0, 0));
@@ -230,7 +242,7 @@ int main()
 					}
 				}
 			}
-			else if (misc.gamestate == Misc::GameState::MainMenu)
+			else if (misc.gamestate == Misc::GameState::MainMenu || misc.paused == true)
 			{
 				menu.navigate();
 				if (Event.type == sf::Event::KeyPressed)
@@ -240,6 +252,8 @@ int main()
 						if (menu.Option == menu.optionStartGame)
 						{
 							misc.gamestate = Misc::GameState::InGame;
+							misc.paused = false;
+							if (player.wasFrozen == false) { player.frozen = false; }
 							updateMenuFrame = false;
 							if (!SavedGameExists)
 							{
@@ -253,7 +267,20 @@ int main()
 						}
 						else if (menu.Option == menu.optionQuit)
 						{
-							Window.close();
+							if (misc.gamestate == Misc::GameState::MainMenu)
+							{
+								Window.close();
+							}
+							else if (misc.paused == true)
+							{
+								misc.gamestate = Misc::GameState::MainMenu;
+								misc.paused = false;
+								menu.Option = menu.optionStartGame;
+								menu.textNewGame.setColor(sf::Color(204, 204, 0));
+								menu.textContinueGame.setColor(sf::Color(204, 204, 0));
+								menu.textQuit.setColor(sf::Color(255, 255, 255));
+								Window.setView(Window.getDefaultView());
+							}
 						}
 					}
 				}
@@ -269,9 +296,17 @@ int main()
 					}
 					else if (Event.key.code == sf::Keyboard::P || Event.key.code == sf::Keyboard::Escape)
 					{
-						std::cout << "Paused." << std::endl;
+						if (player.frozen == true)
+						{
+							player.wasFrozen = true;
+						}
+						else
+						{
+							player.wasFrozen = false;
+						}
 						misc.paused = true;
 						player.frozen = true;
+						menu.textContinueGame.setColor(sf::Color(204, 204, 0));
 					}
 					else if (Event.key.code == sf::Keyboard::Space)
 					{
@@ -306,18 +341,17 @@ int main()
 				}
 			}
 
-			if (misc.gamestate == Misc::GameState::InGame && misc.paused == true)
+			/*if (misc.gamestate == Misc::GameState::InGame && misc.paused == true)
 			{
 				if (Event.type == sf::Event::KeyPressed)
 				{
 					if (Event.key.code == sf::Keyboard::Return)
 					{
-						std::cout << "Resumed." << std::endl;
 						misc.paused = false;
-						player.frozen = false;
+						if (player.wasFrozen == false) { player.frozen = false; }
 					}
 				}
-			}
+			}*/
 
 			switch (Event.type)
 			{
@@ -351,12 +385,13 @@ int main()
 			{
 				player.running = true;
 				moveSpeed = 200.0f;
-				frameSpeed = 10000;
+				frameSpeed = 1000;
 			}
 			else
 			{
 				player.running = false;
-				moveSpeed = 100.0f;
+				if (misc.fastMode == false) { moveSpeed = 100.0f; }
+				else { moveSpeed = 500.0f; }
 				frameSpeed = 500;
 			}
 
@@ -408,7 +443,7 @@ int main()
 				misc.source.x = 0;
 		}
 
-		framePedMovementCounter = (updatePedMovementFrame) ? framePedMovementCounter + framePedMovementSpeed * mailman.clockMovement.restart().asSeconds() : 0;
+		framePedMovementCounter = (updatePedMovementFrame) ? framePedMovementCounter + framePedMovementSpeed * courier.clockMovement.restart().asSeconds() : 0;
 		if (framePedMovementCounter >= switchPedMovementFrame)
 		{
 			framePedMovementCounter = 0;
@@ -430,9 +465,15 @@ int main()
 		objects.draw("Object0", Object, Object0, 0, 730, 475);
 
 		misc.drawBoundaryV("BoundaryV0", BoundaryV, BoundaryV0, 0, 0);
-		misc.drawBoundaryV("BoundaryV1", BoundaryV, BoundaryV1, 0, 991);
+		misc.drawBoundaryV("BoundaryV1", BoundaryV, BoundaryV1, 0, 1000);
+		misc.drawBoundaryV("BoundaryV2", BoundaryV, BoundaryV2, 2080, 1870);
 		misc.drawBoundaryH("BoundaryH0", BoundaryH, BoundaryH0, 575, 0);
 		misc.drawBoundaryH("BoundaryH1", BoundaryH, BoundaryH1, 1150, 0);
+		misc.drawBoundaryH("BoundaryH2", BoundaryH, BoundaryH2, 700, 1123);
+		misc.drawBoundaryH("BoundaryH3", BoundaryH, BoundaryH3, 700, 1700);
+		misc.drawBoundaryH("BoundaryH4", BoundaryH, BoundaryH4, 1275, 1123);
+		misc.drawBoundaryH("BoundaryH5", BoundaryH, BoundaryH5, 1275, 1700);
+		misc.drawBoundaryH("BoundaryH6", BoundaryH, BoundaryH6, 2080, 1123);
 
 		player.moving = false;
 
@@ -461,7 +502,7 @@ int main()
 		Window.setView(view);
 
 		player.setTextureRect(sf::IntRect(misc.source.x * 32, misc.source.y * 32, 32, 32));
-		background.setTextureRect(sf::IntRect(0, backgroundCurrentFrame * 600, 800, 600));
+		background.setTextureRect(sf::IntRect(0, backgroundCurrentFrame * 600, (int)misc.screenDimensions.x, (int)misc.screenDimensions.y));
 
 		misc.drawInTextBox.setString(misc.textInTextBox);
 		misc.drawInTextBox.setPosition((misc.textbox.getLocalBounds().width - misc.drawInTextBox.getGlobalBounds().width) / 2 + misc.textbox.getPosition().x, (misc.textbox.getLocalBounds().height - 2 * misc.drawInTextBox.getGlobalBounds().height) / 2 + misc.textbox.getPosition().y);
@@ -475,10 +516,18 @@ int main()
 		}
 		else if (misc.gamestate == Misc::GameState::MainMenu)
 		{
+			Window.setView(Window.getDefaultView());
 			Window.draw(background);
 			Window.draw(logoname);
 			Window.draw(menu.textMenuVersion);
-			Window.draw(menu.textNewGame);
+			if (objective.part == 0)
+			{
+				Window.draw(menu.textNewGame);
+			}
+			else
+			{
+				Window.draw(menu.textContinueGame);
+			}
 			Window.draw(menu.textOptions);
 			Window.draw(menu.textQuit);
 		}
@@ -487,8 +536,14 @@ int main()
 			Window.draw(Grass);
 			Window.draw(BoundaryV0);
 			Window.draw(BoundaryV1);
+			Window.draw(BoundaryV2);
 			Window.draw(BoundaryH0);
 			Window.draw(BoundaryH1);
+			Window.draw(BoundaryH2);
+			Window.draw(BoundaryH3);
+			Window.draw(BoundaryH4);
+			Window.draw(BoundaryH5);
+			Window.draw(BoundaryH6);
 			Window.draw(MainHouse);
 			Window.draw(House0);
 			Window.draw(House1);
@@ -496,8 +551,8 @@ int main()
 			Window.draw(House3);
 			Window.draw(House4);
 			Window.draw(Object0);
-			if (objective.part >= 1 && objective.part <= 2) { Window.draw(mailman); }
-			if (misc.arrowFlash == true && misc.showArrow == true) { Window.draw(arrow); }
+			if (objective.part >= 1 && objective.part <= 2) { Window.draw(courier); }
+			if (misc.arrowFlash == true && misc.showArrow == true && misc.paused == false) { Window.draw(arrow); }
 			if (misc.showExclaim == true)
 			{
 				exclaim.setPosition(player.getPosition().x + 8, player.getPosition().y - 25);
@@ -525,6 +580,10 @@ int main()
 			if (misc.paused == true)
 			{
 				Window.draw(Grey);
+				Window.draw(logoname);
+				Window.draw(menu.textContinueGame);
+				Window.draw(menu.textOptions);
+				Window.draw(menu.textQuit);
 			}
 			Window.setView(view);
 		}

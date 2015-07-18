@@ -13,5 +13,6 @@ public:
 	bool running;
 	bool enteredDoor;
 	bool frozen;
+	bool wasFrozen;
 private:
 };

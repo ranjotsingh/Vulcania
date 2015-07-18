@@ -5,7 +5,7 @@
 
 extern Player player;
 extern Misc misc;
-extern Ped mailman;
+extern Ped courier;
 
 Objective::Objective()
 {
@@ -21,7 +21,7 @@ Objective::~Objective()
 
 void Objective::initiate()
 {
-	if (misc.paused == false)
+	if (misc.gamestate == Misc::GameState::InGame && misc.paused == false)
 	{
 		if (part == 0)
 		{
@@ -29,9 +29,9 @@ void Objective::initiate()
 			if (player.getPosition().x >= 820 && player.getPosition().x <= 851 && player.getPosition().y >= 510 && player.getPosition().y <= 538)
 			{
 				part = 1;
-				mailman.setPosition(1114, player.getPosition().y);
-				mailman.direction = player.getPosition() - mailman.getPosition();
-				mailman.pedSource = 0;
+				courier.setPosition(1114, player.getPosition().y);
+				courier.direction = player.getPosition() - courier.getPosition();
+				courier.pedSource = 0;
 			}
 		}
 		else if (part == 1)
@@ -41,13 +41,13 @@ void Objective::initiate()
 			misc.showArrow = false;
 			misc.arrowFlash = false;
 			misc.showExclaim = true;
-			if (mailman.getPosition().x >= player.getPosition().x + 26)
+			if (courier.getPosition().x >= player.getPosition().x + 26)
 			{
-				mailman.setTextureRect(sf::IntRect((int)mailman.pedSource * 32, (int)Misc::Direction::Left * 32, 32, 32));
-				mailman.move(mailman.movePedSpeed * mailman.direction * mailman.clockMovement.getElapsedTime().asSeconds());
-				mailman.pedSource++;
-				if (mailman.pedSource * 32 >= 96) // 96 = Width of Entire Texture applied to Sprite (not just the Rect)
-					mailman.pedSource = 0;
+				courier.setTextureRect(sf::IntRect((int)courier.pedSource * 32, (int)Misc::Direction::Left * 32, 32, 32));
+				courier.move(courier.movePedSpeed * courier.direction * courier.clockMovement.getElapsedTime().asSeconds());
+				courier.pedSource++;
+				if (courier.pedSource * 32 >= 96) // 96 = Width of Entire Texture applied to Sprite (not just the Rect)
+					courier.pedSource = 0;
 			}
 			else
 			{

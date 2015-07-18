@@ -16,7 +16,7 @@ Misc::Misc()
 	source.y = Up;
 
 	lockMode = true;
-	fastMode = false;
+	fastMode = true;
 
 	paused = false;
 

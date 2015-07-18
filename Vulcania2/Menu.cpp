@@ -54,6 +54,7 @@ void Menu::navigate()
 		if (Option == optionOptions)
 		{
 			textNewGame.setColor(sf::Color(204, 204, 0));
+			textContinueGame.setColor(sf::Color(204, 204, 0));
 			textOptions.setColor(sf::Color(255, 255, 255));
 			Option = optionStartGame;
 		}
@@ -69,6 +70,7 @@ void Menu::navigate()
 		if (Option == optionStartGame)
 		{
 			textNewGame.setColor(sf::Color(255, 255, 255));
+			textContinueGame.setColor(sf::Color(255, 255, 255));
 			textOptions.setColor(sf::Color(204, 204, 0));
 			Option = optionOptions;
 		}
