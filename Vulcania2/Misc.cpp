@@ -13,10 +13,10 @@ Misc::Misc()
 	gamestate = StartMenu;
 
 	source.x = 1;
-	source.y = Up;
+	source.y = Down;
 
 	lockMode = true;
-	fastMode = true;
+	fastMode = false;
 
 	paused = false;
 

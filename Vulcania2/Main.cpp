@@ -111,7 +111,7 @@ int main()
 	if (!fontMain.loadFromFile("fonts/arial.ttf")) { std::cout << "Error: Game failed to load 'arial' font." << std::endl; }
 
 	player.setTexture(pTexture);
-	player.setPosition(713, 973);
+	player.setPosition(605, 1255);
 
 	map.setTexture(mTexture);
 
@@ -198,6 +198,20 @@ int main()
 
 	sf::Sprite Object0;
 	objects.load(Object, Object0);
+	sf::Sprite Object1;
+	objects.load(Object, Object1);
+	sf::Sprite Object2;
+	objects.load(Object, Object2);
+	sf::Sprite Object3;
+	objects.load(Object, Object3);
+	sf::Sprite Object4;
+	objects.load(Object, Object4);
+	sf::Sprite Object5;
+	objects.load(Object, Object5);
+	sf::Sprite Object6;
+	objects.load(Object, Object6);
+	sf::Sprite Object7;
+	objects.load(Object, Object7);
 
 	sf::Sprite BoundaryV0;
 	misc.loadBoundaryV(BoundaryV, BoundaryV0);
@@ -205,6 +219,8 @@ int main()
 	misc.loadBoundaryV(BoundaryV, BoundaryV1);
 	sf::Sprite BoundaryV2;
 	misc.loadBoundaryV(BoundaryV, BoundaryV2);
+	sf::Sprite BoundaryV3;
+	misc.loadBoundaryV(BoundaryV, BoundaryV3);
 	sf::Sprite BoundaryH0;
 	misc.loadBoundaryH(BoundaryH, BoundaryH0);
 	sf::Sprite BoundaryH1;
@@ -225,6 +241,7 @@ int main()
 	sf::String sentence;
 
 	loadingThread.terminate();
+	std::cout << "*** Loading Time: " << totalGameTime.getElapsedTime().asSeconds() + 0.3 << " seconds." << std::endl;
 
 	while (Window.isOpen())
 	{
@@ -259,7 +276,7 @@ int main()
 							{
 								std::ofstream file(saveFileName);
 							}
-							if (objective.part == 0)
+							if (objective.currentObj == 5 && objective.part == 0)
 							{
 								misc.showArrow = true;
 								misc.arrowFlash = true;
@@ -280,6 +297,7 @@ int main()
 								menu.textContinueGame.setColor(sf::Color(204, 204, 0));
 								menu.textQuit.setColor(sf::Color(255, 255, 255));
 								Window.setView(Window.getDefaultView());
+								updateMenuFrame = true;
 							}
 						}
 					}
@@ -291,8 +309,8 @@ int main()
 				{
 					if (Event.key.code == sf::Keyboard::X)
 					{
-						std::cout << "PlayerX: " << player.getPosition().x << " PlayerY: " << player.getPosition().y << " player.moving: " << player.moving << std::endl;
-						std::cout << "GamePart: " << objective.part << " player.frozen: " << player.frozen << std::endl;
+						std::cout << "Position: (" << player.getPosition().x << ", " << player.getPosition().y << ") | player.moving: " << player.moving << " | player.frozen: " << player.frozen << std::endl;
+						std::cout << "objective.currentObj: " << objective.currentObj << " | objective.part: " << objective.part << std::endl;
 					}
 					else if (Event.key.code == sf::Keyboard::P || Event.key.code == sf::Keyboard::Escape)
 					{
@@ -462,11 +480,19 @@ int main()
 		buildings.draw("House4", Building, House4, 5, 1027, 604);
 		buildings.spawnDoors();
 
-		objects.draw("Object0", Object, Object0, 0, 730, 475);
+		objects.draw("Tree0", Object, Object0, 0, 730, 475);
+		objects.draw("Tree1", Object, Object4, 0, 2224, 1688);
+		objects.draw("Tree2", Object, Object5, 0, 2334, 1688);
+		objects.draw("Tree2", Object, Object6, 0, 2444, 1688);
+		objects.draw("Tree3", Object, Object7, 0, 2554, 1688);
+		objects.draw("DeadUncle", Object, Object1, 3, 2540, 1796);
+		objects.draw("Bush0", Object, Object2, 4, 2176, 1721);
+		objects.draw("Bush1", Object, Object3, 4, 2340, 1721);
 
 		misc.drawBoundaryV("BoundaryV0", BoundaryV, BoundaryV0, 0, 0);
 		misc.drawBoundaryV("BoundaryV1", BoundaryV, BoundaryV1, 0, 1000);
 		misc.drawBoundaryV("BoundaryV2", BoundaryV, BoundaryV2, 2080, 1870);
+		misc.drawBoundaryV("BoundaryV3", BoundaryV, BoundaryV3, 2655, 1690);
 		misc.drawBoundaryH("BoundaryH0", BoundaryH, BoundaryH0, 575, 0);
 		misc.drawBoundaryH("BoundaryH1", BoundaryH, BoundaryH1, 1150, 0);
 		misc.drawBoundaryH("BoundaryH2", BoundaryH, BoundaryH2, 700, 1123);
@@ -537,6 +563,7 @@ int main()
 			Window.draw(BoundaryV0);
 			Window.draw(BoundaryV1);
 			Window.draw(BoundaryV2);
+			Window.draw(BoundaryV3);
 			Window.draw(BoundaryH0);
 			Window.draw(BoundaryH1);
 			Window.draw(BoundaryH2);
@@ -551,6 +578,13 @@ int main()
 			Window.draw(House3);
 			Window.draw(House4);
 			Window.draw(Object0);
+			Window.draw(Object1);
+			Window.draw(Object2);
+			Window.draw(Object3);
+			Window.draw(Object4);
+			Window.draw(Object5);
+			Window.draw(Object6);
+			Window.draw(Object7);
 			if (objective.part >= 1 && objective.part <= 2) { Window.draw(courier); }
 			if (misc.arrowFlash == true && misc.showArrow == true && misc.paused == false) { Window.draw(arrow); }
 			if (misc.showExclaim == true)
@@ -570,7 +604,7 @@ int main()
 			{
 				Window.draw(objectivebox);
 				Window.draw(textGameObjective);
-				if (objective.currentObj == 0) { Window.draw(textgameObjectiveCurrent); }
+				if (objective.currentObj >= 0) { Window.draw(textgameObjectiveCurrent); }
 			}
 			if (misc.showSignBox == true)
 			{

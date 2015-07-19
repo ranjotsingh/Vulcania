@@ -37,7 +37,15 @@ void Objects::draw(std::string objectName, sf::Texture& objectsTexture, sf::Spri
 	{
 		objects.setTextureRect(sf::IntRect(185, 0, 64, 110));
 	}
-	if (objectNumber >= 0 && objectNumber <= 2)
+	else if (objectNumber == 3)
+	{
+		objects.setTextureRect(sf::IntRect(0, 87, 42, 46));
+	}
+	else if (objectNumber == 4)
+	{
+		objects.setTextureRect(sf::IntRect(0, 156, 305, 33));
+	}
+	if (objectNumber >= 0 && objectNumber <= 4)
 	{
 		objects.setPosition(objectX, objectY);
 		float left = objects.getGlobalBounds().left - 24;
