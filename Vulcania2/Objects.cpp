@@ -2,6 +2,7 @@
 #include "Player.h"
 
 extern Player player;
+extern Misc misc;
 
 Objects::Objects()
 {
@@ -13,7 +14,6 @@ Objects::~Objects()
 
 void Objects::load(sf::Texture& objectsTexture, sf::Sprite& object)
 {
-	if (!objectsTexture.loadFromFile("images/map/misc.png")) { std::cout << "Error: Game failed to load 'misc' image." << std::endl; }
 	object.setTexture(objectsTexture);
 }
 
@@ -48,13 +48,16 @@ void Objects::draw(std::string objectName, sf::Texture& objectsTexture, sf::Spri
 	if (objectNumber >= 0 && objectNumber <= 4)
 	{
 		objects.setPosition(objectX, objectY);
-		float left = objects.getGlobalBounds().left - 24;
-		float right = left + objects.getGlobalBounds().width + 16;
-		float top = objects.getGlobalBounds().top - 32;
-		float bottom = top + objects.getGlobalBounds().height;
-		if (player.getPosition().x > left && player.getPosition().x < right && player.getPosition().y > top && player.getPosition().y < bottom)
-			player.setPosition(player.prevPos.x, player.prevPos.y);
+		if (misc.wallHack == false)
+		{
+			float left = objects.getGlobalBounds().left - 24;
+			float right = left + objects.getGlobalBounds().width + 16;
+			float top = objects.getGlobalBounds().top - 32;
+			float bottom = top + objects.getGlobalBounds().height;
+			if (player.getPosition().x > left && player.getPosition().x < right && player.getPosition().y > top && player.getPosition().y < bottom)
+				player.setPosition(player.prevPos.x, player.prevPos.y);
+		}
 	}
 	else
-		std::cout << "Error: '" << objectName << "' has failed to load. (invalid object number)." << std::endl;
+		std::cout << "*** Error: '" << objectName << "' has failed to load. (invalid object number)." << std::endl;
 }

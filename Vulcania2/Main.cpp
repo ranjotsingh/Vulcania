@@ -18,19 +18,59 @@ Buildings buildings;
 Objective objective;
 
 Ped courier;
+Ped lucius;
+Ped shadow;
+Ped tobias;
 
 void loadingScreen(sf::RenderWindow &Window)
 {
+	sf::sleep(sf::milliseconds(500));
 	sf::Font fontNoodle;
-	if (!fontNoodle.loadFromFile("fonts/noodle.ttf")) { std::cout << "Error: Game failed to load 'noodle' font." << std::endl; }
+	if (!fontNoodle.loadFromFile("fonts/noodle.ttf")) { std::cout << "*** Error: Game failed to load 'noodle' font." << std::endl; }
 	sf::Text textLoading("Loading...", fontNoodle, 20);
 	textLoading.setPosition((misc.screenDimensions.x - textLoading.getGlobalBounds().width) / 2, 535);
 	Window.draw(textLoading);
 	Window.display();
 }
 
+void inputs()
+{
+	std::string input;
+	while (std::cin >> input)
+	{
+		if (Misc::GameState::InGame)
+		{
+			if (input == "wallhack" && misc.wallHack == false)
+			{
+				misc.wallHack = true;
+				std::cout << "*** Wallhack activated." << std::endl;
+			}
+			else if (input == "wallhack" && misc.wallHack == true)
+			{
+				misc.wallHack = false;
+				std::cout << "*** Wallhack deactivated." << std::endl;
+			}
+			else if (input == "reset")
+			{
+				player.setPosition(2710, 1055);
+				player.source.y = Misc::Direction::Left;
+				std::cout << "*** Position reset." << std::endl;
+			}
+			else
+				std::cout << "*** Invalid command." << std::endl;
+		}
+	}
+}
+
 int main()
 {
+	std::cout << "*** " << misc.gameName << " is now running." << std::endl;
+
+	sf::Clock clock;
+	sf::Clock clockMenu;
+	sf::Clock clockFlash;
+	sf::Clock totalGameTime;
+
 	int backgroundCurrentFrame = 0;
 
 	float frameCounter = 0, switchFrame = 100, frameSpeed = 500;
@@ -39,7 +79,7 @@ int main()
 	float frameFlashCounter = 0, switchFlashFrame = 100, frameFlashSpeed = 400;
 
 	sf::RenderWindow Window;
-	Window.create(sf::VideoMode((int)misc.screenDimensions.x, (int)misc.screenDimensions.y), "Vulcania: Commencement", sf::Style::Titlebar | sf::Style::Close);
+	Window.create(sf::VideoMode((int)misc.screenDimensions.x, (int)misc.screenDimensions.y), misc.gameName, sf::Style::Titlebar | sf::Style::Close);
 	Window.setFramerateLimit(100);
 	Window.setKeyRepeatEnabled(false);
 
@@ -71,107 +111,14 @@ int main()
 	sf::Sprite signbox;
 
 	sf::Texture pedCourierTexture;
+	sf::Texture pedLuciusTexture;
+	sf::Texture pedShadowTexture;
+	sf::Texture pedTobiasTexture;
 
-	sf::Clock clock;
-	sf::Clock clockMenu;
-	sf::Clock clockFlash;
-	sf::Clock totalGameTime;
-
-	float moveSpeed;
-	if (misc.fastMode == false)
-		moveSpeed = 100.0f;
-	else if (misc.fastMode == true)
-		moveSpeed = 500.0f;
-
-	sf::View view;
-
-	view.reset(sf::FloatRect(0, 0, misc.screenDimensions.x, misc.screenDimensions.y));
-	view.setViewport(sf::FloatRect(0, 0, 1.0f, 1.0f));
-
-	bool updateFrame = true;
-	bool updateMenuFrame = true;
-	bool updatePedMovementFrame = true;
-	bool updateFlashFrame = true;
-
-	if (!pTexture.loadFromFile("images/peds/Player.png")) { std::cout << "Error: Game failed to load 'player' image." << std::endl; }
-	if (!mTexture.loadFromFile("images/map/Map.png")) { std::cout << "Error: Game failed to load 'map' image." << std::endl; }
-	if (!bTexture.loadFromFile("images/misc/Background.png")) { std::cout << "Error: Game failed to load 'background' image." << std::endl; }
-	if (!lTexture.loadFromFile("images/misc/Logo.png")) { std::cout << "Error: Game failed to load 'logo' image." << std::endl; }
-	if (!lnTexture.loadFromFile("images/misc/Logoname.png")) { std::cout << "Error: Game failed to load 'logoname' image." << std::endl; }
-	if (!signsTexture.loadFromFile("images/misc/signs.png")) { std::cout << "Error: Game failed to load 'signs' image." << std::endl; }
-	if (!boxesTexture.loadFromFile("images/boxes/boxes.png")) { std::cout << "Error: Game failed to load 'boxes' image." << std::endl; }
-
-	if (!pedCourierTexture.loadFromFile("images/peds/Courier.png")) { std::cout << "Error: Game failed to load 'courier' image." << std::endl; }
-
-	sf::Font fontNoodle;
-	if (!fontNoodle.loadFromFile("fonts/noodle.ttf")) { std::cout << "Error: Game failed to load 'noodle' font." << std::endl; }
-	sf::Font fontViper;
-	if (!fontViper.loadFromFile("fonts/viper.ttf")) { std::cout << "Error: Game failed to load 'viper' font." << std::endl; }
-	sf::Font fontMain;
-	if (!fontMain.loadFromFile("fonts/arial.ttf")) { std::cout << "Error: Game failed to load 'arial' font." << std::endl; }
-
-	player.setTexture(pTexture);
-	player.setPosition(605, 1255);
-
-	map.setTexture(mTexture);
-
-	background.setTexture(bTexture);
-
-	logo.setTexture(lTexture);
-	logo.setPosition(260, 70);
-
-	logoname.setTexture(lnTexture);
-	logoname.setPosition(92, 100);
-
-	arrow.setTexture(signsTexture);
-	arrow.setTextureRect(sf::IntRect(0, 0, 10, 18));
-	arrow.setPosition(852, 515);
-	arrow.setRotation(180);
-
-	exclaim.setTexture(signsTexture);
-	exclaim.setTextureRect(sf::IntRect(15, 0, 20, 20));
-
-	objectivebox.setTexture(boxesTexture);
-	objectivebox.setTextureRect(sf::IntRect(0, 0, 200, 81));
-	objectivebox.setPosition(3, 3);
-
-	signbox.setTexture(boxesTexture);
-	signbox.setTextureRect(sf::IntRect(0, 147, 331, 488));
-	signbox.setPosition((misc.screenDimensions.x - signbox.getGlobalBounds().width) / 2, (misc.screenDimensions.y - signbox.getGlobalBounds().height) / 2);
-
-	courier.setTexture(pedCourierTexture);
-
-	sf::String startingPressSpace = "Press space to start game.";
-	sf::Text textPressSpace(startingPressSpace, fontNoodle, 20);
-	textPressSpace.setColor(sf::Color(255, 255, 255));
-	textPressSpace.setPosition((misc.screenDimensions.x - textPressSpace.getGlobalBounds().width) / 2, 535);
-
-	menu.draw();
-	menu.textNewGame.setFont(fontNoodle);
-	menu.textContinueGame.setFont(fontNoodle);
-	menu.textOptions.setFont(fontNoodle);
-	menu.textQuit.setFont(fontNoodle);
-	menu.textMenuVersion.setFont(fontNoodle);
-
-	misc.loadTextBox();
-	misc.textbox.setTexture(boxesTexture);
-	misc.drawInTextBox.setFont(fontMain);
-
-	sf::String gameObjective = "Main Objective:";
-	sf::Text textGameObjective(gameObjective, fontMain, 34);
-	textGameObjective.setScale(0.29f, 0.29f);
-	textGameObjective.setStyle(sf::Text::Bold);
-	textGameObjective.setColor(sf::Color(255, 255, 255));
-	textGameObjective.setPosition((objectivebox.getLocalBounds().width - textGameObjective.getGlobalBounds().width) / 2 + objectivebox.getPosition().x, 7);
-
-	sf::Text textgameObjectiveCurrent(objective.objCurrentText, fontMain, 34);
-	textgameObjectiveCurrent.setScale(0.29f, 0.29f);
-	textgameObjectiveCurrent.setColor(sf::Color(255, 255, 255));
-	textgameObjectiveCurrent.setPosition((objectivebox.getLocalBounds().width - textgameObjectiveCurrent.getGlobalBounds().width) / 2 + objectivebox.getPosition().x, (objectivebox.getLocalBounds().height - textgameObjectiveCurrent.getGlobalBounds().height) / 2 + objectivebox.getPosition().y);
-
-	// Loading the map textures
 	sf::Texture Building;
 	sf::Texture Floor;
+	sf::Texture Floor2;
+	sf::Texture Floor3;
 	sf::Texture Background;
 	sf::Texture Object;
 	sf::Texture BoundaryV;
@@ -180,11 +127,24 @@ int main()
 	sf::Sprite Grass;
 	misc.loadFloor(Floor, Grass);
 
+	sf::Sprite DirtH0;
+	misc.loadFloor(Floor2, DirtH0);
+	sf::Sprite DirtH1;
+	misc.loadFloor(Floor2, DirtH1);
+	sf::Sprite DirtH2;
+	misc.loadFloor(Floor2, DirtH2);
+	sf::Sprite DirtH3;
+	misc.loadFloor(Floor2, DirtH3);
+
+	sf::Sprite DirtV0;
+	misc.loadFloor(Floor3, DirtV0);
+
 	sf::Sprite Grey;
 	misc.loadBackground(Background, Grey);
 
 	sf::Sprite MainHouse;
 	buildings.load(Building, MainHouse);
+
 	sf::Sprite House0;
 	buildings.load(Building, House0);
 	sf::Sprite House1;
@@ -221,6 +181,7 @@ int main()
 	misc.loadBoundaryV(BoundaryV, BoundaryV2);
 	sf::Sprite BoundaryV3;
 	misc.loadBoundaryV(BoundaryV, BoundaryV3);
+
 	sf::Sprite BoundaryH0;
 	misc.loadBoundaryH(BoundaryH, BoundaryH0);
 	sf::Sprite BoundaryH1;
@@ -236,12 +197,123 @@ int main()
 	sf::Sprite BoundaryH6;
 	misc.loadBoundaryH(BoundaryH, BoundaryH6);
 
+	float moveSpeed = 100.0f;
+
+	sf::View view;
+
+	view.reset(sf::FloatRect(0, 0, misc.screenDimensions.x, misc.screenDimensions.y));
+	view.setViewport(sf::FloatRect(0, 0, 1.0f, 1.0f));
+
+	bool updateFrame = true;
+	bool updateMenuFrame = true;
+	bool updatePedMovementFrame = true;
+	bool updateFlashFrame = true;
+
+	if (!pTexture.loadFromFile("images/peds/Player.png")) { std::cout << "*** Error: Game failed to load 'Player' image." << std::endl; }
+
+	if (!mTexture.loadFromFile("images/map/Map.png")) { std::cout << "*** Error: Game failed to load 'Map' image." << std::endl; }
+	if (!bTexture.loadFromFile("images/misc/Background.png")) { std::cout << "*** Error: Game failed to load 'Background' image." << std::endl; }
+	if (!lTexture.loadFromFile("images/misc/Logo.png")) { std::cout << "*** Error: Game failed to load 'Logo' image." << std::endl; }
+	if (!lnTexture.loadFromFile("images/misc/Logoname.png")) { std::cout << "*** Error: Game failed to load 'Logoname' image." << std::endl; }
+	if (!signsTexture.loadFromFile("images/misc/signs.png")) { std::cout << "*** Error: Game failed to load 'signs' image." << std::endl; }
+	if (!boxesTexture.loadFromFile("images/boxes/boxes.png")) { std::cout << "*** Error: Game failed to load 'boxes' image." << std::endl; }
+
+	if (!pedCourierTexture.loadFromFile("images/peds/Courier.png")) { std::cout << "*** Error: Game failed to load 'Courier' image." << std::endl; }
+	if (!pedLuciusTexture.loadFromFile("images/peds/WhiteWolf.png")) { std::cout << "*** Error: Game failed to load 'WhiteWolf' image." << std::endl; }
+	if (!pedShadowTexture.loadFromFile("images/peds/BlackWolf.png")) { std::cout << "*** Error: Game failed to load 'BlackWolf' image." << std::endl; }
+	if (!pedTobiasTexture.loadFromFile("images/peds/Tobias.png")) { std::cout << "*** Error: Game failed to load 'Tobias' image." << std::endl; }
+
+	if (!Background.loadFromFile("images/misc/grey.png")) { std::cout << "*** Error: Game failed to load 'grey' image." << std::endl; }
+
+	if (!Building.loadFromFile("images/map/buildings.png")) { std::cout << "*** Error: Game failed to load 'buildings' image." << std::endl; }
+	if (!Object.loadFromFile("images/map/misc.png")) { std::cout << "*** Error: Game failed to load 'misc' image." << std::endl; }
+
+	if (!Floor.loadFromFile("images/map/floor.png")) { std::cout << "*** Error: Game failed to load 'floor' image." << std::endl; }
+	if (!Floor2.loadFromFile("images/map/dirt.png")) { std::cout << "*** Error: Game failed to load 'dirt' image." << std::endl; }
+	if (!Floor3.loadFromFile("images/map/dirt2.png")) { std::cout << "*** Error: Game failed to load 'dirt2' image." << std::endl; }
+
+	sf::Font fontNoodle;
+	if (!fontNoodle.loadFromFile("fonts/noodle.ttf")) { std::cout << "*** Error: Game failed to load 'noodle' font." << std::endl; }
+	sf::Font fontViper;
+	if (!fontViper.loadFromFile("fonts/viper.ttf")) { std::cout << "*** Error: Game failed to load 'viper' font." << std::endl; }
+	sf::Font fontMain;
+	if (!fontMain.loadFromFile("fonts/arial.ttf")) { std::cout << "*** Error: Game failed to load 'arial' font." << std::endl; }
+
+	player.setTexture(pTexture);
+	player.setPosition(2710, 1055);
+	player.source.y = Misc::Direction::Left;
+
+	map.setTexture(mTexture);
+
+	background.setTexture(bTexture);
+
+	logo.setTexture(lTexture);
+	logo.setPosition(260, 70);
+
+	logoname.setTexture(lnTexture);
+	logoname.setPosition(92, 100);
+
+	arrow.setTexture(signsTexture);
+	arrow.setTextureRect(sf::IntRect(0, 0, 10, 18));
+	arrow.setPosition(852, 515);
+	arrow.setRotation(180);
+
+	exclaim.setTexture(signsTexture);
+	exclaim.setTextureRect(sf::IntRect(15, 0, 20, 20));
+
+	objectivebox.setTexture(boxesTexture);
+	objectivebox.setTextureRect(sf::IntRect(0, 0, 200, 81));
+	objectivebox.setPosition(3, 3);
+
+	signbox.setTexture(boxesTexture);
+	signbox.setTextureRect(sf::IntRect(0, 147, 331, 488));
+	signbox.setPosition((misc.screenDimensions.x - signbox.getGlobalBounds().width) / 2, (misc.screenDimensions.y - signbox.getGlobalBounds().height) / 2);
+
+	courier.setTexture(pedCourierTexture);
+	lucius.setTexture(pedLuciusTexture);
+	lucius.setPosition(2595, 1068);
+	shadow.setTexture(pedShadowTexture);
+	shadow.setPosition(2782, 1775);
+	tobias.setTexture(pedTobiasTexture);
+	tobias.setPosition(2710, 1088);
+
+	sf::String startingPressSpace = "Press space to start game.";
+	sf::Text textPressSpace(startingPressSpace, fontNoodle, 20);
+	textPressSpace.setColor(sf::Color(255, 255, 255));
+	textPressSpace.setPosition((misc.screenDimensions.x - textPressSpace.getGlobalBounds().width) / 2, 535);
+
+	menu.draw();
+	menu.textNewGame.setFont(fontNoodle);
+	menu.textContinueGame.setFont(fontNoodle);
+	menu.textOptions.setFont(fontNoodle);
+	menu.textQuit.setFont(fontNoodle);
+	menu.textMenuVersion.setFont(fontNoodle);
+
+	misc.loadTextBox();
+	misc.textbox.setTexture(boxesTexture);
+	misc.drawInTextBox.setFont(fontMain);
+
+	sf::String gameObjective = "Main Objective:";
+	sf::Text textGameObjective(gameObjective, fontMain, 34);
+	textGameObjective.setScale(0.29f, 0.29f);
+	textGameObjective.setStyle(sf::Text::Bold);
+	textGameObjective.setColor(sf::Color(255, 255, 255));
+	textGameObjective.setPosition((objectivebox.getLocalBounds().width - textGameObjective.getGlobalBounds().width) / 2 + objectivebox.getPosition().x, 7);
+
+	sf::Text textgameObjectiveCurrent(objective.objCurrentText, fontMain, 34);
+	textgameObjectiveCurrent.setScale(0.29f, 0.29f);
+	textgameObjectiveCurrent.setColor(sf::Color(255, 255, 255));
+	textgameObjectiveCurrent.setPosition((objectivebox.getLocalBounds().width - textgameObjectiveCurrent.getGlobalBounds().width) / 2 + objectivebox.getPosition().x, (objectivebox.getLocalBounds().height - textgameObjectiveCurrent.getGlobalBounds().height) / 2 + objectivebox.getPosition().y);
+
 	sf::Text text("", fontMain, 30);
 	text.setColor(sf::Color(0, 0, 0));
 	sf::String sentence;
 
+	sf::Thread inputThread(inputs);
+	inputThread.launch();
+
 	loadingThread.terminate();
-	std::cout << "*** Loading Time: " << totalGameTime.getElapsedTime().asSeconds() + 0.3 << " seconds." << std::endl;
+	std::cout << "*** Loading Time: " << totalGameTime.getElapsedTime().asSeconds() + 0.7 << " seconds.\n\n";
 
 	while (Window.isOpen())
 	{
@@ -286,6 +358,7 @@ int main()
 						{
 							if (misc.gamestate == Misc::GameState::MainMenu)
 							{
+								inputThread.terminate();
 								Window.close();
 							}
 							else if (misc.paused == true)
@@ -309,8 +382,8 @@ int main()
 				{
 					if (Event.key.code == sf::Keyboard::X)
 					{
-						std::cout << "Position: (" << player.getPosition().x << ", " << player.getPosition().y << ") | player.moving: " << player.moving << " | player.frozen: " << player.frozen << std::endl;
-						std::cout << "objective.currentObj: " << objective.currentObj << " | objective.part: " << objective.part << std::endl;
+						std::cout << "*** Position: (" << player.getPosition().x << ", " << player.getPosition().y << ") | player.moving: " << player.moving << " | player.frozen: " << player.frozen << std::endl;
+						std::cout << "*** objective.currentObj: " << objective.currentObj << " | objective.part: " << objective.part << std::endl;
 					}
 					else if (Event.key.code == sf::Keyboard::P || Event.key.code == sf::Keyboard::Escape)
 					{
@@ -337,10 +410,11 @@ int main()
 					{
 						if (objective.part == 2 && objective.subPart == 3)
 						{
-							std::cout << "Game has saved information into the game save file." << std::endl;
+							std::cout << "*** Game has saved information into the game save file." << std::endl;
 							misc.showSignBox = false;
 							player.frozen = false;
-							objective.part = 3;
+							objective.currentObj++;
+							objective.part = 0;
 						}
 					}
 				}
@@ -405,40 +479,56 @@ int main()
 				moveSpeed = 200.0f;
 				frameSpeed = 1000;
 			}
+			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
+			{
+				player.running = true;
+				moveSpeed = 500.0f;
+				frameSpeed = 10000;
+			}
 			else
 			{
 				player.running = false;
-				if (misc.fastMode == false) { moveSpeed = 100.0f; }
-				else { moveSpeed = 500.0f; }
+				moveSpeed = 100.0f;
 				frameSpeed = 500;
 			}
 
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 			{
-				misc.source.y = Misc::Direction::Up;
+				player.source.y = Misc::Direction::Up;
 				player.moving = true;
 				if (player.getPosition().y >= 0)
 					player.move(0, -moveSpeed * clock.getElapsedTime().asSeconds());
 			}
 			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 			{
-				misc.source.y = Misc::Direction::Down;
+				player.source.y = Misc::Direction::Down;
 				player.moving = true;
 				player.move(0, moveSpeed * clock.getElapsedTime().asSeconds());
 			}
 			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 			{
-				misc.source.y = Misc::Direction::Right;
+				player.source.y = Misc::Direction::Right;
 				player.moving = true;
 				player.move(moveSpeed * clock.getElapsedTime().asSeconds(), 0);
 			}
 			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 			{
-				misc.source.y = Misc::Direction::Left;
+				player.source.y = Misc::Direction::Left;
 				player.moving = true;
 				if (player.getPosition().x >= 0)
 					player.move(-moveSpeed * clock.getElapsedTime().asSeconds(), 0);
 			}
+			else
+			{
+				player.moving = false;
+				player.source.x = 1;
+			}
+		}
+
+		if (player.frozen == true)
+		{
+			player.moving = false;
+			player.source.x = 1;
 		}
 
 		if (misc.gamestate == Misc::GameState::InGame && misc.showTextBox == true && misc.paused == false)
@@ -450,15 +540,30 @@ int main()
 			}
 		}
 
+		if (Window.hasFocus() == false && misc.gamestate == Misc::GameState::InGame && misc.paused == false)
+		{
+			if (player.frozen == true)
+			{
+				player.wasFrozen = true;
+			}
+			else
+			{
+				player.wasFrozen = false;
+			}
+			misc.paused = true;
+			player.frozen = true;
+			menu.textContinueGame.setColor(sf::Color(204, 204, 0));
+		}
+
 		objective.initiate();
 
 		frameCounter = (updateFrame) ? frameCounter + frameSpeed * clock.restart().asSeconds() : 0;
 		if (frameCounter >= switchFrame && player.moving == true)
 		{
 			frameCounter = 0;
-			misc.source.x++;
-			if (misc.source.x * 32 >= (int)pTexture.getSize().x)
-				misc.source.x = 0;
+			player.source.x++;
+			if (player.source.x * 32 >= (int)pTexture.getSize().x)
+				player.source.x = 0;
 		}
 
 		framePedMovementCounter = (updatePedMovementFrame) ? framePedMovementCounter + framePedMovementSpeed * courier.clockMovement.restart().asSeconds() : 0;
@@ -469,6 +574,11 @@ int main()
 
 		// Drawing the map textures
 		misc.drawFloor("Grass", Floor, Grass, 0, 0, 0, 50000, 50000);
+		misc.drawFloor("DirtH0", Floor2, DirtH0, 0, 610, 540, Floor2.getSize().x * 15, Floor2.getSize().y * 1);
+		misc.drawFloor("DirtH1", Floor2, DirtH1, 0, 610, 1618, Floor2.getSize().x * 60, Floor2.getSize().y * 1);
+		misc.drawFloor("DirtH2", Floor2, DirtH2, 0, 610, 1056, Floor2.getSize().x * 60, Floor2.getSize().y * 1);
+		misc.drawFloor("DirtH3", Floor2, DirtH3, 0, 610, 702, Floor2.getSize().x * 10, Floor2.getSize().y * 1);
+		misc.drawFloor("DirtV0", Floor3, DirtV0, 0, 608, 542, Floor3.getSize().x * 1, Floor3.getSize().y * 25);
 
 		misc.drawBackground("Grey", Background, Grey, 0, 0, 0, misc.screenDimensions.x, misc.screenDimensions.y);
 
@@ -480,28 +590,27 @@ int main()
 		buildings.draw("House4", Building, House4, 5, 1027, 604);
 		buildings.spawnDoors();
 
-		objects.draw("Tree0", Object, Object0, 0, 730, 475);
-		objects.draw("Tree1", Object, Object4, 0, 2224, 1688);
-		objects.draw("Tree2", Object, Object5, 0, 2334, 1688);
-		objects.draw("Tree2", Object, Object6, 0, 2444, 1688);
-		objects.draw("Tree3", Object, Object7, 0, 2554, 1688);
-		objects.draw("DeadUncle", Object, Object1, 3, 2540, 1796);
-		objects.draw("Bush0", Object, Object2, 4, 2176, 1721);
-		objects.draw("Bush1", Object, Object3, 4, 2340, 1721);
+		objects.draw("Tree0", Object, Object0, 0, 693, 613);
+		objects.draw("Tree1", Object, Object4, 0, 2425, 1688);
+		objects.draw("Tree2", Object, Object5, 0, 2535, 1688);
+		objects.draw("Tree2", Object, Object6, 0, 2645, 1688);
+		objects.draw("Tree3", Object, Object7, 0, 2755, 1688);
+		objects.draw("DeadUncle", Object, Object1, 3, 2773, 1796);
+		objects.draw("Bush0", Object, Object2, 4, 2377, 1721);
+		objects.draw("Bush1", Object, Object3, 4, 2555, 1721);
 
 		misc.drawBoundaryV("BoundaryV0", BoundaryV, BoundaryV0, 0, 0);
 		misc.drawBoundaryV("BoundaryV1", BoundaryV, BoundaryV1, 0, 1000);
-		misc.drawBoundaryV("BoundaryV2", BoundaryV, BoundaryV2, 2080, 1870);
-		misc.drawBoundaryV("BoundaryV3", BoundaryV, BoundaryV3, 2655, 1690);
+		misc.drawBoundaryV("BoundaryV2", BoundaryV, BoundaryV2, 2304, 1870);
+		misc.drawBoundaryV("BoundaryV3", BoundaryV, BoundaryV3, 2875, 1690);
+
 		misc.drawBoundaryH("BoundaryH0", BoundaryH, BoundaryH0, 575, 0);
 		misc.drawBoundaryH("BoundaryH1", BoundaryH, BoundaryH1, 1150, 0);
 		misc.drawBoundaryH("BoundaryH2", BoundaryH, BoundaryH2, 700, 1123);
 		misc.drawBoundaryH("BoundaryH3", BoundaryH, BoundaryH3, 700, 1700);
-		misc.drawBoundaryH("BoundaryH4", BoundaryH, BoundaryH4, 1275, 1123);
-		misc.drawBoundaryH("BoundaryH5", BoundaryH, BoundaryH5, 1275, 1700);
-		misc.drawBoundaryH("BoundaryH6", BoundaryH, BoundaryH6, 2080, 1123);
-
-		player.moving = false;
+		misc.drawBoundaryH("BoundaryH4", BoundaryH, BoundaryH4, 1502, 1123);
+		misc.drawBoundaryH("BoundaryH5", BoundaryH, BoundaryH5, 1502, 1700);
+		misc.drawBoundaryH("BoundaryH6", BoundaryH, BoundaryH6, 2308, 1123);
 
 		frameFlashCounter = (updateFlashFrame) ? frameFlashCounter + frameFlashSpeed * clockFlash.restart().asSeconds() : 0;
 		if (frameFlashCounter >= switchFlashFrame && misc.showArrow == true)
@@ -527,7 +636,7 @@ int main()
 
 		Window.setView(view);
 
-		player.setTextureRect(sf::IntRect(misc.source.x * 32, misc.source.y * 32, 32, 32));
+		player.setTextureRect(sf::IntRect(player.source.x * 32, player.source.y * 32, 32, 32));
 		background.setTextureRect(sf::IntRect(0, backgroundCurrentFrame * 600, (int)misc.screenDimensions.x, (int)misc.screenDimensions.y));
 
 		misc.drawInTextBox.setString(misc.textInTextBox);
@@ -560,10 +669,18 @@ int main()
 		else if (misc.gamestate == Misc::GameState::InGame)
 		{
 			Window.draw(Grass);
+
+			Window.draw(DirtH0);
+			Window.draw(DirtH1);
+			Window.draw(DirtH2);
+			Window.draw(DirtH3);
+			Window.draw(DirtV0);
+
 			Window.draw(BoundaryV0);
 			Window.draw(BoundaryV1);
 			Window.draw(BoundaryV2);
 			Window.draw(BoundaryV3);
+
 			Window.draw(BoundaryH0);
 			Window.draw(BoundaryH1);
 			Window.draw(BoundaryH2);
@@ -571,21 +688,29 @@ int main()
 			Window.draw(BoundaryH4);
 			Window.draw(BoundaryH5);
 			Window.draw(BoundaryH6);
+
 			Window.draw(MainHouse);
 			Window.draw(House0);
 			Window.draw(House1);
 			Window.draw(House2);
 			Window.draw(House3);
 			Window.draw(House4);
+
 			Window.draw(Object0);
-			Window.draw(Object1);
 			Window.draw(Object2);
 			Window.draw(Object3);
 			Window.draw(Object4);
 			Window.draw(Object5);
 			Window.draw(Object6);
 			Window.draw(Object7);
-			if (objective.part >= 1 && objective.part <= 2) { Window.draw(courier); }
+			if (objective.currentObj == 0)
+			{
+				Window.draw(Object1);
+				Window.draw(lucius);
+				Window.draw(shadow);
+				Window.draw(tobias);
+			}
+			if (objective.currentObj == 5 && objective.part >= 1) { Window.draw(courier); }
 			if (misc.arrowFlash == true && misc.showArrow == true && misc.paused == false) { Window.draw(arrow); }
 			if (misc.showExclaim == true)
 			{

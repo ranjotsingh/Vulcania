@@ -8,6 +8,7 @@ public:
 	Misc();
 	~Misc();
 
+	std::string gameName;
 	sf::String version;
 	sf::Vector2f screenDimensions;
 
@@ -15,10 +16,9 @@ public:
 	enum GameState { StartMenu, MainMenu, InGame };
 
 	enum Direction { Down, Left, Right, Up };
-	sf::Vector2i source;
 
 	bool lockMode;
-	bool fastMode;
+	bool wallHack;
 
 	bool paused;
 

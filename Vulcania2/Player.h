@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include "Misc.h"
 
 #pragma once
 class Player : public sf::Sprite
@@ -14,5 +15,7 @@ public:
 	bool enteredDoor;
 	bool frozen;
 	bool wasFrozen;
+
+	sf::Vector2i source;
 private:
 };

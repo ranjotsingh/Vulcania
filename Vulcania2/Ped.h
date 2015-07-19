@@ -1,4 +1,5 @@
 #include <SFML\Graphics.hpp>
+#include "Misc.h"
 
 #pragma once
 class Ped : public sf::Sprite
@@ -8,7 +9,7 @@ public:
 	~Ped();
 
 	sf::Vector2f direction;
-	float pedSource;
+	sf::Vector2i source;
 	float movePedSpeed;
 
 	sf::Clock clockMovement;

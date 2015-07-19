@@ -6,6 +6,9 @@
 extern Player player;
 extern Misc misc;
 extern Ped courier;
+extern Ped lucius;
+extern Ped shadow;
+extern Ped tobias;
 
 Objective::Objective()
 {
@@ -26,6 +29,12 @@ void Objective::initiate()
 		if (currentObj == 0)
 		{
 			objCurrentText = "Walk with Tobias.";
+			shadow.setTextureRect(sf::IntRect((int)shadow.source.x * 32, (int)shadow.source.y * 32, 32, 32));
+			shadow.source.y = Misc::Direction::Down;
+			lucius.setTextureRect(sf::IntRect((int)lucius.source.x * 32, (int)lucius.source.y * 32, 32, 32));
+			lucius.source.y = Misc::Direction::Left;
+			tobias.setTextureRect(sf::IntRect((int)tobias.source.x * 32, (int)tobias.source.y * 32, 32, 32));
+			tobias.source.y = Misc::Direction::Left;
 		}
 		else if (currentObj == 5)
 		{
@@ -37,23 +46,23 @@ void Objective::initiate()
 					part = 1;
 					courier.setPosition(1114, player.getPosition().y);
 					courier.direction = player.getPosition() - courier.getPosition();
-					courier.pedSource = 0;
+					courier.source.x = 1;
 				}
 			}
 			else if (part == 1)
 			{
-				misc.source.y = Misc::Direction::Right;
+				player.source.y = Misc::Direction::Right;
 				player.frozen = true;
 				misc.showArrow = false;
 				misc.arrowFlash = false;
 				misc.showExclaim = true;
 				if (courier.getPosition().x >= player.getPosition().x + 26)
 				{
-					courier.setTextureRect(sf::IntRect((int)courier.pedSource * 32, (int)Misc::Direction::Left * 32, 32, 32));
+					courier.setTextureRect(sf::IntRect((int)courier.source.x * 32, (int)Misc::Direction::Left * 32, 32, 32));
 					courier.move(courier.movePedSpeed * courier.direction * courier.clockMovement.getElapsedTime().asSeconds());
-					courier.pedSource++;
-					if (courier.pedSource * 32 >= 96) // 96 = Width of Entire Texture applied to Sprite (not just the Rect)
-						courier.pedSource = 0;
+					courier.source.x++;
+					if (courier.source.x * 32 >= 96) // 96 = Width of Entire Texture applied to Sprite (not just the Rect)
+						courier.source.x = 0;
 				}
 				else
 				{
@@ -66,6 +75,7 @@ void Objective::initiate()
 			else if (part == 2)
 			{
 				player.frozen = true;
+				courier.source.x = 1;
 				if (subPart == 0)
 				{
 					misc.textInTextBox = "MAILMAN: Do you live here? I have a package for this address.";
