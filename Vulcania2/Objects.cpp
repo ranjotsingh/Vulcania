@@ -23,7 +23,7 @@ void Objects::solid(std::string objectName, float left, float right, float top, 
 		player.setPosition(player.prevPos.x, player.prevPos.y);
 }
 
-void Objects::draw(std::string objectName, sf::Texture& objectsTexture, sf::Sprite& objects, int objectNumber, float objectX, float objectY)
+void Objects::draw(std::string objectName, sf::Texture& objectsTexture, sf::Sprite& objects, int objectNumber, float objectX, float objectY, bool perm)
 {
 	if (objectNumber == 0)
 	{
@@ -45,7 +45,7 @@ void Objects::draw(std::string objectName, sf::Texture& objectsTexture, sf::Spri
 	{
 		objects.setTextureRect(sf::IntRect(0, 156, 305, 33));
 	}
-	if (objectNumber >= 0 && objectNumber <= 4)
+	if (perm)
 	{
 		objects.setPosition(objectX, objectY);
 		if (misc.wallHack == false)

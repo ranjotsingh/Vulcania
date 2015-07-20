@@ -11,6 +11,8 @@ public:
 	sf::Vector2f direction;
 	sf::Vector2i source;
 	float movePedSpeed;
+	bool reachedSpot;
+	sf::Vector2f reachingPoint;
 
 	sf::Clock clockMovement;
 };

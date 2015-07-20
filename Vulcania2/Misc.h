@@ -29,6 +29,7 @@ public:
 	bool showArrow;
 	bool showExclaim;
 
+	void smooth(sf::Text &text);
 	sf::Sprite textbox;
 	std::string textInTextBox;
 	sf::Text drawInTextBox;

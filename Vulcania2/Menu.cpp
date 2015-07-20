@@ -29,17 +29,17 @@ void Menu::draw()
 	textContinueGame.setString(menuContinueGame);
 	textContinueGame.setCharacterSize(40);
 	textContinueGame.setColor(sf::Color(255, 255, 255));
-	textContinueGame.setPosition(313.5, 210);
+	textContinueGame.setPosition(313, 210);
 
 	textOptions.setString(menuOptions);
 	textOptions.setCharacterSize(40);
 	textOptions.setColor(sf::Color(255, 255, 255));
-	textOptions.setPosition(353.5, 260);
+	textOptions.setPosition(353, 260);
 
 	textQuit.setString(menuQuit);
 	textQuit.setCharacterSize(40);
 	textQuit.setColor(sf::Color(255, 255, 255));
-	textQuit.setPosition(374.5, 310);
+	textQuit.setPosition(374, 310);
 
 	textMenuVersion.setString(menuVersion);
 	textMenuVersion.setCharacterSize(20);

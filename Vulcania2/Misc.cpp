@@ -33,16 +33,21 @@ Misc::~Misc()
 {
 }
 
+void Misc::smooth(sf::Text &text)
+{
+	text.setPosition((float)std::round(text.getPosition().x), (float)std::round(text.getPosition().y));
+}
+
 void Misc::loadTextBox()
 {
 	textbox.setTextureRect(sf::IntRect(200, 0, 500, 146));
 	textbox.setPosition((screenDimensions.x - textbox.getGlobalBounds().width) / 2, 444);
 
 	drawInTextBox.setString(textInTextBox);
-	drawInTextBox.setCharacterSize(34);
-	drawInTextBox.setScale(0.35f, 0.35f);
+	drawInTextBox.setCharacterSize(12);
 	drawInTextBox.setColor(sf::Color(255, 255, 255));
 	drawInTextBox.setPosition((textbox.getLocalBounds().width - drawInTextBox.getLocalBounds().width) / 2 + textbox.getPosition().x, (textbox.getLocalBounds().height - 2 * drawInTextBox.getLocalBounds().height) / 2 + textbox.getPosition().y);
+	smooth(drawInTextBox);
 }
 
 void Misc::loadBackground(sf::Texture& backgroundsTexture, sf::Sprite& backgrounds)
