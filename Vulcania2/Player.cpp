@@ -1,7 +1,10 @@
 #include "Player.h"
+#include "Misc.h"
 
 Player::Player()
 {
+	name = "Player";
+
 	moveSpeed = 100.0f;
 	movePedSpeed = 0.035f;
 

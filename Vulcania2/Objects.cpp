@@ -1,8 +1,4 @@
 #include "Objects.h"
-#include "Player.h"
-
-extern Player player;
-extern Misc misc;
 
 Objects::Objects()
 {
@@ -17,13 +13,13 @@ void Objects::load(sf::Texture& objectsTexture, sf::Sprite& object)
 	object.setTexture(objectsTexture);
 }
 
-void Objects::solid(std::string objectName, float left, float right, float top, float bottom)
+void Objects::solid(Player &player, std::string objectName, float left, float right, float top, float bottom)
 {
 	if (player.getPosition().x > left && player.getPosition().x < right && player.getPosition().y > top && player.getPosition().y < bottom)
 		player.setPosition(player.prevPos.x, player.prevPos.y);
 }
 
-void Objects::draw(std::string objectName, sf::Texture& objectsTexture, sf::Sprite& objects, int objectNumber, float objectX, float objectY, bool perm)
+void Objects::draw(Misc &misc, Player &player, std::string objectName, sf::Texture& objectsTexture, sf::Sprite& objects, int objectNumber, float objectX, float objectY, bool perm)
 {
 	if (objectNumber == 0)
 	{

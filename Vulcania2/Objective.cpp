@@ -1,33 +1,25 @@
 #include "Objective.h"
-#include "Player.h"
-#include "Misc.h"
-#include "Ped.h"
-
-extern Player player;
-extern Misc misc;
-extern Ped courier;
-extern Ped lucius;
-extern Ped shadow;
-extern Ped tobias;
 
 Objective::Objective()
 {
 	currentObj = 0;
 	part = 0;
 	subPart = 0;
-	objCurrentText = "None";
+	name = "Quest Name";
+	objCurrentText = "None.";
 }
 
 Objective::~Objective()
 {
 }
 
-void Objective::initiate()
+void Objective::initiate(Misc &misc, Player &player, Ped &tobias, Ped &lucius, Ped &courier, Ped &shadow)
 {
 	if (misc.gamestate == Misc::GameState::InGame && misc.paused == false)
 	{
 		if (currentObj == 0)
 		{
+			name = "Uncle Trent";
 			objCurrentText = "Walk with Tobias.";
 			player.setPosition(2710, 1055);
 			lucius.setPosition(2595, 1068);
@@ -377,16 +369,21 @@ void Objective::initiate()
 		{
 			if (part == 0)
 			{
+				name = "Did You Get The Memo?";
 				objCurrentText = "Go home.";
-				if (player.getPosition().x >= 820 && player.getPosition().x <= 851 && player.getPosition().y >= 510 && player.getPosition().y <= 538)
+				part = 1;
+			}
+			else if (part == 1)
+			{
+				if (player.getPosition().x >= 810 && player.getPosition().x <= 851 && player.getPosition().y >= 510 && player.getPosition().y <= 538)
 				{
-					part = 1;
-					courier.setPosition(1114, player.getPosition().y);
+					part = 2;
+					courier.setPosition(1395, player.getPosition().y);
 					courier.direction = player.getPosition() - courier.getPosition();
 					courier.source.x = 1;
 				}
 			}
-			else if (part == 1)
+			else if (part == 2)
 			{
 				player.source.y = Misc::Direction::Right;
 				player.frozen = true;
@@ -405,27 +402,27 @@ void Objective::initiate()
 				{
 					misc.showExclaim = false;
 					misc.showTextBox = true;
-					part = 2;
+					courier.source.x = 1;
+					part = 3;
 					subPart = 0;
 				}
 			}
-			else if (part == 2)
+			else if (part == 3)
 			{
 				player.frozen = true;
-				courier.source.x = 1;
 				if (subPart == 0)
 				{
-					misc.textInTextBox = "MAILMAN: Do you live here? I have a package for this address.";
+					misc.textInTextBox = "COURIER: Do you live here? I have a package for this address.";
 					misc.showTextBox = true;
 				}
 				else if (subPart == 1)
 				{
-					misc.textInTextBox = "MAILMAN hands you the package.";
+					misc.textInTextBox = "COURIER hands you the package.";
 					misc.showTextBox = true;
 				}
 				else if (subPart == 2)
 				{
-					misc.textInTextBox = "MAILMAN: Sign here with your name.";
+					misc.textInTextBox = "COURIER: Sign here with your name.";
 					misc.showTextBox = true;
 				}
 				else if (subPart == 3)
@@ -433,11 +430,13 @@ void Objective::initiate()
 					objCurrentText = "Sign with your name.";
 					misc.showSignBox = true;
 					misc.showTextBox = false;
+					misc.typing = true;
 				}
 			}
 		}
 		else
 		{
+			name = "None";
 			objCurrentText = "None.";
 		}
 	}

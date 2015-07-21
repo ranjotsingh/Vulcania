@@ -1,7 +1,8 @@
+#pragma once
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include "Player.h"
 
-#pragma once
 class Misc
 {
 public:
@@ -22,6 +23,8 @@ public:
 
 	bool paused;
 
+	bool typing;
+
 	bool showObjectiveBox;
 	bool showSignBox;
 
@@ -33,6 +36,10 @@ public:
 	sf::Sprite textbox;
 	std::string textInTextBox;
 	sf::Text drawInTextBox;
+	sf::Text drawInTextBox_Outline1;
+	sf::Text drawInTextBox_Outline2;
+	sf::Text drawInTextBox_Outline3;
+	sf::Text drawInTextBox_Outline4;
 	bool showTextBox;
 
 	void loadTextBox();
@@ -44,7 +51,11 @@ public:
 	void drawFloor(std::string floorName, sf::Texture& floorsTexture, sf::Sprite& floors, int floorNumber, float floorX, float floorY, int floorW, int floorH);
 
 	void loadBoundaryV(sf::Texture& boundaryVTexture, sf::Sprite& boundaryV);
-	void drawBoundaryV(std::string boundaryVName, sf::Texture& boundaryVTexture, sf::Sprite& boundaryV, float boundaryX, float boundaryY);
+	void drawBoundaryV(Player &player, std::string boundaryVName, sf::Texture& boundaryVTexture, sf::Sprite& boundaryV, float boundaryX, float boundaryY);
 	void loadBoundaryH(sf::Texture& boundaryHTexture, sf::Sprite& boundaryH);
-	void drawBoundaryH(std::string boundaryHName, sf::Texture& boundaryHTexture, sf::Sprite& boundaryH, float boundaryX, float boundaryY);
+	void drawBoundaryH(Player &player, std::string boundaryHName, sf::Texture& boundaryHTexture, sf::Sprite& boundaryH, float boundaryX, float boundaryY);
+
+	sf::Font fontMain;
+	sf::Font fontNoodle;
+	sf::Font fontDaniel;
 };

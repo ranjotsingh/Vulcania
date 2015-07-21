@@ -1,10 +1,4 @@
 #include "Buildings.h"
-#include "Player.h"
-#include "Misc.h"
-
-extern Player player;
-extern Misc misc;
-extern sf::Vector2i source;
 
 Buildings::Buildings()
 {
@@ -14,14 +8,14 @@ Buildings::~Buildings()
 {
 }
 
-void Buildings::spawnDoors()
+void Buildings::spawnDoors(Misc &misc, Player &player)
 {
-	door("Main House", 827, 510);
-	door("House 0", 960, 514);
-	door("House 1", 1082, 516);
-	door("House 2", 793, 670);
-	door("House 3", 895, 669);
-	door("House 4", 1072, 670);
+	door(misc, player, "Main House", 827, 510);
+	door(misc, player, "House 0", 960, 514);
+	door(misc, player, "House 1", 1082, 516);
+	door(misc, player, "House 2", 793, 670);
+	door(misc, player, "House 3", 895, 669);
+	door(misc, player, "House 4", 1072, 670);
 }
 
 void Buildings::load(sf::Texture& buildingsTexture, sf::Sprite& buildings)
@@ -29,7 +23,7 @@ void Buildings::load(sf::Texture& buildingsTexture, sf::Sprite& buildings)
 	buildings.setTexture(buildingsTexture);
 }
 
-void Buildings::draw(std::string buildingName, sf::Texture& buildingsTexture, sf::Sprite& buildings, int buildingNumber, float objectX, float objectY)
+void Buildings::draw(Misc &misc, Player &player, std::string buildingName, sf::Texture& buildingsTexture, sf::Sprite& buildings, int buildingNumber, float objectX, float objectY)
 {
 	if (buildingNumber == 0)
 	{
@@ -72,7 +66,7 @@ void Buildings::draw(std::string buildingName, sf::Texture& buildingsTexture, sf
 		std::cout << "*** Error: '" << buildingName << "' has failed to load. (invalid building number)." << std::endl;
 }
 
-void Buildings::door(std::string doorName, float doorX, float doorY)
+void Buildings::door(Misc &misc, Player &player, std::string doorName, float doorX, float doorY)
 {
 	sf::Vector2f newDoor(doorX, doorY);
 	float doorRadius = 10;

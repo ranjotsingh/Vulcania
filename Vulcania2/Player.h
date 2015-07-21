@@ -1,13 +1,14 @@
+#pragma once
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#include "Misc.h"
 
-#pragma once
 class Player : public sf::Sprite
 {
 public:
 	Player();
 	~Player();
+
+	std::string name;
 
 	sf::Vector2f prevPos;
 	sf::Vector2f direction;
@@ -25,5 +26,4 @@ public:
 	bool wasFrozen;
 
 	sf::Vector2i source;
-private:
 };

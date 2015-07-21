@@ -1,7 +1,8 @@
+#pragma once
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include "Misc.h"
 
-#pragma once
 class Menu
 {
 public:
@@ -11,7 +12,7 @@ public:
 	enum Options { optionStartGame, optionOptions, optionQuit };
 	int Option;
 
-	void draw();
+	void draw(Misc &misc);
 	void navigate();
 
 	sf::String menuNewGame;

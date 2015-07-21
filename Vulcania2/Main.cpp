@@ -1,6 +1,9 @@
+#pragma once
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <fstream>
+#include <functional>
+#include <thread>
 
 #include "Player.h"
 #include "Menu.h"
@@ -10,31 +13,16 @@
 #include "Objective.h"
 #include "Ped.h"
 
-Misc misc;
-Menu menu;
-Player player;
-Objects objects;
-Buildings buildings;
-Objective objective;
-
-Ped courier;
-Ped lucius;
-Ped shadow;
-Ped tobias;
-
-void loadingScreen(sf::RenderWindow &Window)
+void loadingScreen(sf::RenderWindow &Window, Misc &misc)
 {
-	sf::sleep(sf::milliseconds(500));
-	sf::Font fontNoodle;
-	if (!fontNoodle.loadFromFile("fonts/noodle.ttf")) { std::cout << "*** Error: Game failed to load 'noodle' font." << std::endl; }
-	sf::Text textLoading("Loading...", fontNoodle, 20);
-	textLoading.setPosition((misc.screenDimensions.x - textLoading.getGlobalBounds().width) / 2, 535);
+	sf::Text textLoading("Loading...", misc.fontNoodle, 20);
+	textLoading.setPosition((misc.screenDimensions.x - textLoading.getGlobalBounds().width) / 2, misc.screenDimensions.y - 65);
 	misc.smooth(textLoading);
 	Window.draw(textLoading);
 	Window.display();
 }
 
-void inputs()
+void inputs(Misc &misc, Player &player, Objective &objective, Ped &tobias, Ped &lucius, Ped &courier)
 {
 	std::string input;
 	while (std::cin >> input)
@@ -55,6 +43,7 @@ void inputs()
 			{
 				objective.currentObj = 0;
 				objective.part = 0;
+				misc.typing = false;
 				std::cout << "*** Game reset." << std::endl;
 			}
 			else if (input == "skip")
@@ -68,7 +57,7 @@ void inputs()
 			{
 				std::cout << "*** Position: (" << player.getPosition().x << ", " << player.getPosition().y << ") | player.moving: " << player.moving << " | player.frozen: " << player.frozen << std::endl;
 				std::cout << "*** objective.currentObj: " << objective.currentObj << " | objective.part: " << objective.part << " | objective.subPart: " << objective.subPart << std::endl;
-				std::cout << tobias.getPosition().x << std::endl;
+				std::cout << courier.source.x << std::endl;
 			}
 			else if (input == "teleport")
 			{
@@ -84,9 +73,19 @@ void inputs()
 				objective.currentObj = -1;
 				objective.part = 0;
 				objective.subPart = 0;
-				player.frozen = false;
+				misc.typing = false;
+				player.wasFrozen = false;
 				player.autoMove = false;
 				std::cout << "*** Objectives disabled." << std::endl;
+			}
+			else if (input == "setobjective")
+			{
+				std::cout << "*** Set current objective to: ";
+				std::cin >> objective.currentObj;
+				objective.part = 0;
+				objective.subPart = 0;
+				misc.typing = false;
+				std::cout << "*** Objective set to " << objective.currentObj << "." << std::endl;
 			}
 			else { std::cout << "*** Invalid command." << std::endl; }
 		}
@@ -95,6 +94,18 @@ void inputs()
 
 int main()
 {
+	Misc misc;
+	Menu menu;
+	Player player;
+	Objects objects;
+	Buildings buildings;
+	Objective objective;
+
+	Ped courier;
+	Ped lucius;
+	Ped shadow;
+	Ped tobias;
+
 	std::cout << "*** " << misc.gameName << " is now running." << std::endl;
 
 	sf::Clock clock;
@@ -109,12 +120,17 @@ int main()
 	float framePedMovementCounter = 0, switchPedMovementFrame = 100, framePedMovementSpeed = 500;
 	float frameFlashCounter = 0, switchFlashFrame = 100, frameFlashSpeed = 400;
 
+	sf::Image icon;
+	icon.loadFromFile("images/misc/icon.png");
+
 	sf::RenderWindow Window;
 	Window.create(sf::VideoMode((int)misc.screenDimensions.x, (int)misc.screenDimensions.y), misc.gameName, sf::Style::Titlebar | sf::Style::Close);
 	Window.setFramerateLimit(100);
 	Window.setKeyRepeatEnabled(false);
+	Window.setIcon(256, 256, icon.getPixelsPtr());
+	Window.setActive(false);
 
-	sf::Thread loadingThread(loadingScreen, std::ref(Window));
+	sf::Thread loadingThread(std::bind(loadingScreen, std::ref(Window), std::ref(misc)));
 	loadingThread.launch();
 
 	std::string saveFileName = "save/save001.sav";
@@ -261,24 +277,18 @@ int main()
 	if (!Floor2.loadFromFile("images/map/dirt.png")) { std::cout << "*** Error: Game failed to load 'dirt' image." << std::endl; }
 	if (!Floor3.loadFromFile("images/map/dirt2.png")) { std::cout << "*** Error: Game failed to load 'dirt2' image." << std::endl; }
 
-	sf::Font fontNoodle;
-	if (!fontNoodle.loadFromFile("fonts/noodle.ttf")) { std::cout << "*** Error: Game failed to load 'noodle' font." << std::endl; }
-	sf::Font fontViper;
-	if (!fontViper.loadFromFile("fonts/viper.ttf")) { std::cout << "*** Error: Game failed to load 'viper' font." << std::endl; }
-	sf::Font fontMain;
-	if (!fontMain.loadFromFile("fonts/tahoma.ttf")) { std::cout << "*** Error: Game failed to load 'tahoma' font." << std::endl; }
-
 	player.setTexture(pTexture);
+	player.setPosition(620, 590);
 
 	map.setTexture(mTexture);
 
 	background.setTexture(bTexture);
 
 	logo.setTexture(lTexture);
-	logo.setPosition(260, 70);
+	logo.setPosition((misc.screenDimensions.x - logo.getGlobalBounds().width) / 2, (misc.screenDimensions.y - logo.getGlobalBounds().height) / 2);
 
 	logoname.setTexture(lnTexture);
-	logoname.setPosition(92, 100);
+	logoname.setPosition((misc.screenDimensions.x - logoname.getGlobalBounds().width) / 2, 200);
 
 	arrow.setTexture(signsTexture);
 	arrow.setTextureRect(sf::IntRect(0, 0, 10, 18));
@@ -290,7 +300,7 @@ int main()
 
 	objectivebox.setTexture(boxesTexture);
 	objectivebox.setTextureRect(sf::IntRect(0, 0, 200, 81));
-	objectivebox.setPosition(3, 3);
+	objectivebox.setPosition(misc.screenDimensions.x - objectivebox.getGlobalBounds().width - 10, misc.screenDimensions.y - 75);
 
 	signbox.setTexture(boxesTexture);
 	signbox.setTextureRect(sf::IntRect(0, 147, 331, 488));
@@ -302,42 +312,82 @@ int main()
 	tobias.setTexture(pedTobiasTexture);
 
 	sf::String startingPressSpace = "Press space to start game.";
-	sf::Text textPressSpace(startingPressSpace, fontNoodle, 20);
+	sf::Text textPressSpace(startingPressSpace, misc.fontNoodle, 20);
 	textPressSpace.setColor(sf::Color(255, 255, 255));
-	textPressSpace.setPosition((misc.screenDimensions.x - textPressSpace.getGlobalBounds().width) / 2, 535);
+	textPressSpace.setPosition((misc.screenDimensions.x - textPressSpace.getGlobalBounds().width) / 2, misc.screenDimensions.y - 65);
 	misc.smooth(textPressSpace);
 
-	menu.draw();
-	menu.textNewGame.setFont(fontNoodle);
-	menu.textContinueGame.setFont(fontNoodle);
-	menu.textOptions.setFont(fontNoodle);
-	menu.textQuit.setFont(fontNoodle);
-	menu.textMenuVersion.setFont(fontNoodle);
+	menu.textNewGame.setFont(misc.fontNoodle);
+	menu.textContinueGame.setFont(misc.fontNoodle);
+	menu.textOptions.setFont(misc.fontNoodle);
+	menu.textQuit.setFont(misc.fontNoodle);
+	menu.textMenuVersion.setFont(misc.fontNoodle);
+	menu.draw(misc);
 
+	misc.drawInTextBox.setFont(misc.fontMain);
+	misc.drawInTextBox_Outline1.setFont(misc.fontMain);
+	misc.drawInTextBox_Outline2.setFont(misc.fontMain);
+	misc.drawInTextBox_Outline3.setFont(misc.fontMain);
+	misc.drawInTextBox_Outline4.setFont(misc.fontMain);
 	misc.loadTextBox();
 	misc.textbox.setTexture(boxesTexture);
-	misc.drawInTextBox.setFont(fontMain);
 
-	sf::String gameObjective = "Main Objective:";
-	sf::Text textGameObjective(gameObjective, fontMain, 12);
-	textGameObjective.setColor(sf::Color(255, 255, 255));
-	textGameObjective.setPosition((objectivebox.getLocalBounds().width - textGameObjective.getGlobalBounds().width) / 2 + objectivebox.getPosition().x, 7);
+	sf::Text textGameObjective(objective.name, misc.fontMain, 19);
+	textGameObjective.setColor(sf::Color(255, 215, 0));
+	textGameObjective.setStyle(sf::Text::Underlined);
+	textGameObjective.setPosition((objectivebox.getLocalBounds().width - textGameObjective.getGlobalBounds().width) / 2 + objectivebox.getPosition().x, misc.screenDimensions.y - 75);
 	misc.smooth(textGameObjective);
+	sf::Text textGameObjective_Outline1(objective.name, misc.fontMain, textGameObjective.getCharacterSize());
+	textGameObjective_Outline1.setColor(sf::Color(0, 0, 0));
+	textGameObjective_Outline1.setStyle(sf::Text::Underlined);
+	textGameObjective_Outline1.setPosition(textGameObjective.getPosition().x - 1, textGameObjective.getPosition().y);
+	misc.smooth(textGameObjective_Outline1);
+	sf::Text textGameObjective_Outline2(objective.name, misc.fontMain, textGameObjective.getCharacterSize());
+	textGameObjective_Outline2.setColor(sf::Color(0, 0, 0));
+	textGameObjective_Outline2.setStyle(sf::Text::Underlined);
+	textGameObjective_Outline2.setPosition(textGameObjective.getPosition().x + 1, textGameObjective.getPosition().y);
+	misc.smooth(textGameObjective_Outline2);
+	sf::Text textGameObjective_Outline3(objective.name, misc.fontMain, textGameObjective.getCharacterSize());
+	textGameObjective_Outline3.setColor(sf::Color(0, 0, 0));
+	textGameObjective_Outline3.setStyle(sf::Text::Underlined);
+	textGameObjective_Outline3.setPosition(textGameObjective.getPosition().x, textGameObjective.getPosition().y - 1);
+	misc.smooth(textGameObjective_Outline3);
+	sf::Text textGameObjective_Outline4(objective.name, misc.fontMain, textGameObjective.getCharacterSize());
+	textGameObjective_Outline4.setColor(sf::Color(0, 0, 0));
+	textGameObjective_Outline4.setStyle(sf::Text::Underlined);
+	textGameObjective_Outline4.setPosition(textGameObjective.getPosition().x, textGameObjective.getPosition().y + 1);
+	misc.smooth(textGameObjective_Outline4);
 
-	sf::Text textgameObjectiveCurrent(objective.objCurrentText, fontMain, 10);
+	sf::Text textgameObjectiveCurrent(objective.objCurrentText, misc.fontMain, 18);
 	textgameObjectiveCurrent.setColor(sf::Color(255, 255, 255));
 	textgameObjectiveCurrent.setPosition((objectivebox.getLocalBounds().width - textgameObjectiveCurrent.getGlobalBounds().width) / 2 + objectivebox.getPosition().x, (objectivebox.getLocalBounds().height - textgameObjectiveCurrent.getGlobalBounds().height) / 2 + objectivebox.getPosition().y);
 	misc.smooth(textgameObjectiveCurrent);
+	sf::Text textgameObjectiveCurrent_Outline1(objective.objCurrentText, misc.fontMain, textgameObjectiveCurrent.getCharacterSize());
+	textgameObjectiveCurrent_Outline1.setColor(sf::Color(0, 0, 0));
+	textgameObjectiveCurrent_Outline1.setPosition(textgameObjectiveCurrent.getPosition());
+	misc.smooth(textgameObjectiveCurrent_Outline1);
+	sf::Text textgameObjectiveCurrent_Outline2(objective.objCurrentText, misc.fontMain, textgameObjectiveCurrent.getCharacterSize());
+	textgameObjectiveCurrent_Outline2.setColor(sf::Color(0, 0, 0));
+	textgameObjectiveCurrent_Outline2.setPosition(textgameObjectiveCurrent.getPosition());
+	misc.smooth(textgameObjectiveCurrent_Outline2);
+	sf::Text textgameObjectiveCurrent_Outline3(objective.objCurrentText, misc.fontMain, textgameObjectiveCurrent.getCharacterSize());
+	textgameObjectiveCurrent_Outline3.setColor(sf::Color(0, 0, 0));
+	textgameObjectiveCurrent_Outline3.setPosition(textgameObjectiveCurrent.getPosition());
+	misc.smooth(textgameObjectiveCurrent_Outline3);
+	sf::Text textgameObjectiveCurrent_Outline4(objective.objCurrentText, misc.fontMain, textgameObjectiveCurrent.getCharacterSize());
+	textgameObjectiveCurrent_Outline4.setColor(sf::Color(0, 0, 0));
+	textgameObjectiveCurrent_Outline4.setPosition(textgameObjectiveCurrent.getPosition());
+	misc.smooth(textgameObjectiveCurrent_Outline4);
 
-	sf::Text text("", fontMain, 30);
+	sf::Text text("", misc.fontDaniel, 20);
 	text.setColor(sf::Color(0, 0, 0));
 	sf::String sentence;
 
-	sf::Thread inputThread(inputs);
+	sf::Thread inputThread(std::bind(&inputs, std::ref(misc), std::ref(player), std::ref(objective), std::ref(tobias), std::ref(lucius), std::ref(courier)));
 	inputThread.launch();
 
 	loadingThread.terminate();
-	std::cout << "*** Loading Time: " << totalGameTime.getElapsedTime().asSeconds() + 0.7 << " seconds.\n\n";
+	std::cout << "*** Load Time: " << totalGameTime.getElapsedTime().asSeconds() + 0.7 << " seconds.\n\n";
 
 	while (Window.isOpen())
 	{
@@ -352,6 +402,7 @@ int main()
 					{
 						misc.gamestate = Misc::GameState::MainMenu;
 						menu.textNewGame.setColor(sf::Color(204, 204, 0));
+						menu.textContinueGame.setColor(sf::Color(204, 204, 0));
 					}
 				}
 			}
@@ -384,6 +435,7 @@ int main()
 							{
 								inputThread.terminate();
 								Window.close();
+								exit(0);
 							}
 							else if (misc.paused == true)
 							{
@@ -404,12 +456,7 @@ int main()
 			{
 				if (Event.type == sf::Event::KeyPressed)
 				{
-					if (Event.key.code == sf::Keyboard::X)
-					{
-						std::cout << "*** Position: (" << player.getPosition().x << ", " << player.getPosition().y << ") | player.moving: " << player.moving << " | player.frozen: " << player.frozen << std::endl;
-						std::cout << "*** objective.currentObj: " << objective.currentObj << " | objective.part: " << objective.part << " | objective.subPart: " << objective.subPart << std::endl;
-					}
-					else if (Event.key.code == sf::Keyboard::P || Event.key.code == sf::Keyboard::Escape)
+					if ((Event.key.code == sf::Keyboard::P || Event.key.code == sf::Keyboard::Escape) && misc.typing == false)
 					{
 						if (player.frozen == true)
 						{
@@ -425,34 +472,41 @@ int main()
 					}
 					else if (Event.key.code == sf::Keyboard::Space)
 					{
-						if (objective.part == 2 && objective.subPart >= 0 && objective.subPart <= 2)
+						if (objective.currentObj == 5 && objective.part == 3 && objective.subPart >= 0 && objective.subPart <= 2)
 						{
 							objective.subPart += 1;
 						}
 					}
 					else if (Event.key.code == sf::Keyboard::Return)
 					{
-						if (objective.part == 2 && objective.subPart == 3)
+						if (objective.currentObj == 5 && objective.part == 3 && objective.subPart == 3)
 						{
+							sentence.erase(0, 1);
+							player.name = sentence.toAnsiString();
+							std::cout << "*** Player name has been set to '" << player.name << "'." << std::endl;
 							std::cout << "*** Game has saved information into the game save file." << std::endl;
 							misc.showSignBox = false;
 							player.frozen = false;
 							objective.currentObj++;
 							objective.part = 0;
+							misc.typing = false;
 						}
 					}
 				}
 				else if (Event.type == sf::Event::TextEntered)
 				{
-					if (objective.part == 2 && objective.subPart == 3)
+					if (objective.currentObj == 5 && objective.part == 3 && objective.subPart == 3)
 					{
-						if (Event.text.unicode >= 32 && Event.text.unicode <= 126 && sentence.getSize() <= 14)
-							sentence += (char)Event.text.unicode;
+						if (Event.text.unicode == 32 || Event.text.unicode == 39 || (Event.text.unicode >= 65 && Event.text.unicode <= 90) || (Event.text.unicode >= 97 && Event.text.unicode <= 122))
+						{
+							if (text.getGlobalBounds().width <= 300)
+								sentence += (char)Event.text.unicode;
+						}
 						else if (Event.text.unicode == 8 && sentence.getSize() > 0)
 							sentence.erase(sentence.getSize() - 1, sentence.getSize());
 
 						text.setString(sentence);
-						text.setPosition(300, 475);
+						text.setPosition(signbox.getLocalBounds().width + 30, signbox.getLocalBounds().height + 85);
 					}
 				}
 			}
@@ -473,6 +527,7 @@ int main()
 			{
 			case sf::Event::Closed:
 				Window.close();
+				exit(0);
 				break;
 			/*
 			case sf::Event::TextEntered:
@@ -516,26 +571,26 @@ int main()
 				frameSpeed = 500;
 			}
 
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 			{
 				player.source.y = Misc::Direction::Up;
 				player.moving = true;
 				if (player.getPosition().y >= 0)
 					player.move(0, -player.moveSpeed * clock.getElapsedTime().asSeconds());
 			}
-			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 			{
 				player.source.y = Misc::Direction::Down;
 				player.moving = true;
 				player.move(0, player.moveSpeed * clock.getElapsedTime().asSeconds());
 			}
-			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 			{
 				player.source.y = Misc::Direction::Right;
 				player.moving = true;
 				player.move(player.moveSpeed * clock.getElapsedTime().asSeconds(), 0);
 			}
-			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 			{
 				player.source.y = Misc::Direction::Left;
 				player.moving = true;
@@ -579,7 +634,7 @@ int main()
 			menu.textContinueGame.setColor(sf::Color(204, 204, 0));
 		}
 
-		objective.initiate();
+		objective.initiate(misc, player, tobias, lucius, courier, shadow);
 
 		frameCounter = (updateFrame) ? frameCounter + frameSpeed * clock.restart().asSeconds() : 0;
 		if (frameCounter >= switchFrame && player.moving == true)
@@ -606,35 +661,35 @@ int main()
 
 		misc.drawBackground("Grey", Background, Grey, 0, 0, 0, misc.screenDimensions.x, misc.screenDimensions.y);
 
-		buildings.draw("Main House", Building, MainHouse, 0, 760, 420);
-		buildings.draw("House0", Building, House0, 1, 928, 431);
-		buildings.draw("House1", Building, House1, 2, 1072, 451);
-		buildings.draw("House2", Building, House2, 3, 787, 637);
-		buildings.draw("House3", Building, House3, 4, 884, 608);
-		buildings.draw("House4", Building, House4, 5, 1027, 604);
-		buildings.spawnDoors();
+		buildings.draw(misc, player, "Main House", Building, MainHouse, 0, 760, 420);
+		buildings.draw(misc, player, "House0", Building, House0, 1, 928, 431);
+		buildings.draw(misc, player, "House1", Building, House1, 2, 1072, 451);
+		buildings.draw(misc, player, "House2", Building, House2, 3, 787, 637);
+		buildings.draw(misc, player, "House3", Building, House3, 4, 884, 608);
+		buildings.draw(misc, player, "House4", Building, House4, 5, 1027, 604);
+		buildings.spawnDoors(misc, player);
 
-		objects.draw("Tree0", Object, Object0, 0, 693, 613, true);
-		objects.draw("Tree1", Object, Object4, 0, 2425, 1688, true);
-		objects.draw("Tree2", Object, Object5, 0, 2535, 1688, true);
-		objects.draw("Tree2", Object, Object6, 0, 2645, 1688, true);
-		objects.draw("Tree3", Object, Object7, 0, 2755, 1688, true);
-		objects.draw("DeadUncle", Object, Object1, 3, 2773, 1796, true);
-		objects.draw("Bush0", Object, Object2, 4, 2377, 1721, true);
-		objects.draw("Bush1", Object, Object3, 4, 2555, 1721, true);
+		objects.draw(misc, player, "Tree0", Object, Object0, 0, 693, 613, true);
+		objects.draw(misc, player, "Tree1", Object, Object4, 0, 2425, 1688, true);
+		objects.draw(misc, player, "Tree2", Object, Object5, 0, 2535, 1688, true);
+		objects.draw(misc, player, "Tree2", Object, Object6, 0, 2645, 1688, true);
+		objects.draw(misc, player, "Tree3", Object, Object7, 0, 2755, 1688, true);
+		objects.draw(misc, player, "DeadUncle", Object, Object1, 3, 2773, 1796, true);
+		objects.draw(misc, player, "Bush0", Object, Object2, 4, 2377, 1721, true);
+		objects.draw(misc, player, "Bush1", Object, Object3, 4, 2555, 1721, true);
 
-		misc.drawBoundaryV("BoundaryV0", BoundaryV, BoundaryV0, 0, 0);
-		misc.drawBoundaryV("BoundaryV1", BoundaryV, BoundaryV1, 0, 1000);
-		misc.drawBoundaryV("BoundaryV2", BoundaryV, BoundaryV2, 2304, 1870);
-		misc.drawBoundaryV("BoundaryV3", BoundaryV, BoundaryV3, 2875, 1690);
+		misc.drawBoundaryV(player, "BoundaryV0", BoundaryV, BoundaryV0, 0, 0);
+		misc.drawBoundaryV(player, "BoundaryV1", BoundaryV, BoundaryV1, 0, 1000);
+		misc.drawBoundaryV(player, "BoundaryV2", BoundaryV, BoundaryV2, 2304, 1870);
+		misc.drawBoundaryV(player, "BoundaryV3", BoundaryV, BoundaryV3, 2875, 1690);
 
-		misc.drawBoundaryH("BoundaryH0", BoundaryH, BoundaryH0, 575, 0);
-		misc.drawBoundaryH("BoundaryH1", BoundaryH, BoundaryH1, 1150, 0);
-		misc.drawBoundaryH("BoundaryH2", BoundaryH, BoundaryH2, 700, 1123);
-		misc.drawBoundaryH("BoundaryH3", BoundaryH, BoundaryH3, 700, 1700);
-		misc.drawBoundaryH("BoundaryH4", BoundaryH, BoundaryH4, 1502, 1123);
-		misc.drawBoundaryH("BoundaryH5", BoundaryH, BoundaryH5, 1502, 1700);
-		misc.drawBoundaryH("BoundaryH6", BoundaryH, BoundaryH6, 2308, 1123);
+		misc.drawBoundaryH(player, "BoundaryH0", BoundaryH, BoundaryH0, 575, 0);
+		misc.drawBoundaryH(player, "BoundaryH1", BoundaryH, BoundaryH1, 1150, 0);
+		misc.drawBoundaryH(player, "BoundaryH2", BoundaryH, BoundaryH2, 700, 1123);
+		misc.drawBoundaryH(player, "BoundaryH3", BoundaryH, BoundaryH3, 700, 1700);
+		misc.drawBoundaryH(player, "BoundaryH4", BoundaryH, BoundaryH4, 1502, 1123);
+		misc.drawBoundaryH(player, "BoundaryH5", BoundaryH, BoundaryH5, 1502, 1700);
+		misc.drawBoundaryH(player, "BoundaryH6", BoundaryH, BoundaryH6, 2308, 1123);
 
 		frameFlashCounter = (updateFlashFrame) ? frameFlashCounter + frameFlashSpeed * clockFlash.restart().asSeconds() : 0;
 		if (frameFlashCounter >= switchFlashFrame && misc.showArrow == true)
@@ -664,11 +719,52 @@ int main()
 		background.setTextureRect(sf::IntRect(0, backgroundCurrentFrame * 600, (int)misc.screenDimensions.x, (int)misc.screenDimensions.y));
 
 		misc.drawInTextBox.setString(misc.textInTextBox);
-		misc.drawInTextBox.setPosition((misc.textbox.getLocalBounds().width - misc.drawInTextBox.getGlobalBounds().width) / 2 + misc.textbox.getPosition().x, (misc.textbox.getLocalBounds().height - 2 * misc.drawInTextBox.getGlobalBounds().height) / 2 + misc.textbox.getPosition().y);
+		misc.drawInTextBox.setPosition((misc.textbox.getLocalBounds().width - misc.drawInTextBox.getGlobalBounds().width) / 2 + misc.textbox.getPosition().x, misc.screenDimensions.y - 30);
 		misc.smooth(misc.drawInTextBox);
+		misc.drawInTextBox_Outline1.setString(misc.textInTextBox);
+		misc.drawInTextBox_Outline1.setPosition(misc.drawInTextBox.getPosition().x + 1, misc.drawInTextBox.getPosition().y);
+		misc.smooth(misc.drawInTextBox_Outline1);
+		misc.drawInTextBox_Outline2.setString(misc.textInTextBox);
+		misc.drawInTextBox_Outline2.setPosition(misc.drawInTextBox.getPosition().x - 1, misc.drawInTextBox.getPosition().y);
+		misc.smooth(misc.drawInTextBox_Outline2);
+		misc.drawInTextBox_Outline3.setString(misc.textInTextBox);
+		misc.drawInTextBox_Outline3.setPosition(misc.drawInTextBox.getPosition().x, misc.drawInTextBox.getPosition().y - 1);
+		misc.smooth(misc.drawInTextBox_Outline3);
+		misc.drawInTextBox_Outline4.setString(misc.textInTextBox);
+		misc.drawInTextBox_Outline4.setPosition(misc.drawInTextBox.getPosition().x, misc.drawInTextBox.getPosition().y + 1);
+		misc.smooth(misc.drawInTextBox_Outline4);
+
+		textGameObjective.setString(objective.name);
+		textGameObjective.setPosition((objectivebox.getLocalBounds().width - textGameObjective.getGlobalBounds().width) / 2 + objectivebox.getPosition().x, misc.screenDimensions.y - 75);
+		misc.smooth(textGameObjective);
+		textGameObjective_Outline1.setString(objective.name);
+		textGameObjective_Outline1.setPosition(textGameObjective.getPosition().x - 1, textGameObjective.getPosition().y);
+		misc.smooth(textGameObjective_Outline1);
+		textGameObjective_Outline2.setString(objective.name);
+		textGameObjective_Outline2.setPosition(textGameObjective.getPosition().x + 1, textGameObjective.getPosition().y);
+		misc.smooth(textGameObjective_Outline2);
+		textGameObjective_Outline3.setString(objective.name);
+		textGameObjective_Outline3.setPosition(textGameObjective.getPosition().x, textGameObjective.getPosition().y - 1);
+		misc.smooth(textGameObjective_Outline3);
+		textGameObjective_Outline4.setString(objective.name);
+		textGameObjective_Outline4.setPosition(textGameObjective.getPosition().x, textGameObjective.getPosition().y + 1);
+		misc.smooth(textGameObjective_Outline4);
+
 		textgameObjectiveCurrent.setString(objective.objCurrentText);
 		textgameObjectiveCurrent.setPosition((objectivebox.getLocalBounds().width - textgameObjectiveCurrent.getGlobalBounds().width) / 2 + objectivebox.getPosition().x, (objectivebox.getLocalBounds().height - textgameObjectiveCurrent.getGlobalBounds().height) / 2 + objectivebox.getPosition().y);
 		misc.smooth(textgameObjectiveCurrent);
+		textgameObjectiveCurrent_Outline1.setString(objective.objCurrentText);
+		textgameObjectiveCurrent_Outline1.setPosition(textgameObjectiveCurrent.getPosition().x - 1, textgameObjectiveCurrent.getPosition().y);
+		misc.smooth(textgameObjectiveCurrent_Outline1);
+		textgameObjectiveCurrent_Outline2.setString(objective.objCurrentText);
+		textgameObjectiveCurrent_Outline2.setPosition(textgameObjectiveCurrent.getPosition().x + 1, textgameObjectiveCurrent.getPosition().y);
+		misc.smooth(textgameObjectiveCurrent_Outline2);
+		textgameObjectiveCurrent_Outline3.setString(objective.objCurrentText);
+		textgameObjectiveCurrent_Outline3.setPosition(textgameObjectiveCurrent.getPosition().x, textgameObjectiveCurrent.getPosition().y - 1);
+		misc.smooth(textgameObjectiveCurrent_Outline3);
+		textgameObjectiveCurrent_Outline4.setString(objective.objCurrentText);
+		textgameObjectiveCurrent_Outline4.setPosition(textgameObjectiveCurrent.getPosition().x, textgameObjectiveCurrent.getPosition().y + 1);
+		misc.smooth(textgameObjectiveCurrent_Outline4);
 
 		if (misc.gamestate == Misc::GameState::StartMenu)
 		{
@@ -678,10 +774,10 @@ int main()
 		else if (misc.gamestate == Misc::GameState::MainMenu)
 		{
 			Window.setView(Window.getDefaultView());
-			Window.draw(background);
+			//Window.draw(background);
 			Window.draw(logoname);
 			Window.draw(menu.textMenuVersion);
-			if (objective.part == 0)
+			if (objective.currentObj <= 1)
 			{
 				Window.draw(menu.textNewGame);
 			}
@@ -736,7 +832,7 @@ int main()
 				Window.draw(shadow);
 				Window.draw(tobias);
 			}
-			if (objective.currentObj == 5 && objective.part >= 1) { Window.draw(courier); }
+			if (objective.currentObj == 5 && objective.part >= 2) { Window.draw(courier); }
 			if (misc.arrowFlash == true && misc.showArrow == true && misc.paused == false) { Window.draw(arrow); }
 			if (misc.showExclaim == true)
 			{
@@ -748,14 +844,28 @@ int main()
 			Window.setView(Window.getDefaultView());
 			if (misc.showTextBox == true)
 			{
-				Window.draw(misc.textbox);
+				//Window.draw(misc.textbox);
+				Window.draw(misc.drawInTextBox_Outline1);
+				Window.draw(misc.drawInTextBox_Outline2);
+				Window.draw(misc.drawInTextBox_Outline3);
+				Window.draw(misc.drawInTextBox_Outline4);
 				Window.draw(misc.drawInTextBox);
 			}
 			if (misc.showObjectiveBox == true)
 			{
-				Window.draw(objectivebox);
+				//Window.draw(objectivebox);
+				Window.draw(textGameObjective_Outline1);
+				Window.draw(textGameObjective_Outline2);
+				Window.draw(textGameObjective_Outline3);
+				Window.draw(textGameObjective_Outline4);
 				Window.draw(textGameObjective);
-				if (objective.currentObj >= -1) { Window.draw(textgameObjectiveCurrent); }
+				if (objective.currentObj >= -1) {
+					Window.draw(textgameObjectiveCurrent_Outline1);
+					Window.draw(textgameObjectiveCurrent_Outline2);
+					Window.draw(textgameObjectiveCurrent_Outline3);
+					Window.draw(textgameObjectiveCurrent_Outline4);
+					Window.draw(textgameObjectiveCurrent);
+				}
 			}
 			if (misc.showSignBox == true)
 			{

@@ -1,7 +1,4 @@
 #include "Menu.h"
-#include "Misc.h"
-
-extern Misc misc;
 
 Menu::Menu()
 {
@@ -11,40 +8,45 @@ Menu::Menu()
 	menuContinueGame = "Continue Game";
 	menuOptions = "Options";
 	menuQuit = "Quit";
-	menuVersion = "Version: " + misc.version;
+	menuVersion = "Version: ";
 }
-
 
 Menu::~Menu()
 {
 }
 
-void Menu::draw()
+void Menu::draw(Misc &misc)
 {
 	textNewGame.setString(menuNewGame);
 	textNewGame.setCharacterSize(40);
 	textNewGame.setColor(sf::Color(255, 255, 255));
-	textNewGame.setPosition(343, 210);
+	textNewGame.setPosition((misc.screenDimensions.x - textNewGame.getGlobalBounds().width) / 2, ((misc.screenDimensions.y - textNewGame.getGlobalBounds().height) / 2) - textNewGame.getGlobalBounds().height - 15);
+	misc.smooth(textNewGame);
 
 	textContinueGame.setString(menuContinueGame);
 	textContinueGame.setCharacterSize(40);
 	textContinueGame.setColor(sf::Color(255, 255, 255));
-	textContinueGame.setPosition(313, 210);
+	textContinueGame.setPosition((misc.screenDimensions.x - textContinueGame.getGlobalBounds().width) / 2, ((misc.screenDimensions.y - textContinueGame.getGlobalBounds().height) / 2) - textContinueGame.getGlobalBounds().height - 15);
+	misc.smooth(textContinueGame);
 
 	textOptions.setString(menuOptions);
 	textOptions.setCharacterSize(40);
 	textOptions.setColor(sf::Color(255, 255, 255));
-	textOptions.setPosition(353, 260);
+	textOptions.setPosition((misc.screenDimensions.x - textOptions.getGlobalBounds().width) / 2, (misc.screenDimensions.y - textOptions.getGlobalBounds().height) / 2);
+	misc.smooth(textOptions);
 
 	textQuit.setString(menuQuit);
 	textQuit.setCharacterSize(40);
 	textQuit.setColor(sf::Color(255, 255, 255));
-	textQuit.setPosition(374, 310);
+	textQuit.setPosition((misc.screenDimensions.x - textQuit.getGlobalBounds().width) / 2, ((misc.screenDimensions.y - textQuit.getGlobalBounds().height) / 2) + textQuit.getGlobalBounds().height + 15);
+	misc.smooth(textQuit);
 
+	menuVersion = "Version: " + misc.version;
 	textMenuVersion.setString(menuVersion);
 	textMenuVersion.setCharacterSize(20);
 	textMenuVersion.setColor(sf::Color(255, 255, 255));
-	textMenuVersion.setPosition(5, 575);
+	textMenuVersion.setPosition(5, misc.screenDimensions.y - 25);
+	misc.smooth(textMenuVersion);
 }
 
 void Menu::navigate()
