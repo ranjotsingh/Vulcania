@@ -1,14 +1,15 @@
-#include "Buildings.h"
+#include "BuildingManager.h"
 
-Buildings::Buildings()
+BuildingManager::BuildingManager()
+{
+	if (!Building.loadFromFile("images/map/buildings.png")) { std::cout << "*** Error: Game failed to load 'buildings' image." << std::endl; }
+}
+
+BuildingManager::~BuildingManager()
 {
 }
 
-Buildings::~Buildings()
-{
-}
-
-void Buildings::spawnDoors(Misc &misc, Player &player)
+void BuildingManager::spawnDoors(Misc &misc, Player &player)
 {
 	door(misc, player, "Main House", 827, 510);
 	door(misc, player, "House 0", 960, 514);
@@ -18,12 +19,12 @@ void Buildings::spawnDoors(Misc &misc, Player &player)
 	door(misc, player, "House 4", 1072, 670);
 }
 
-void Buildings::load(sf::Texture& buildingsTexture, sf::Sprite& buildings)
+void BuildingManager::load(sf::Texture& buildingsTexture, sf::Sprite& buildings)
 {
 	buildings.setTexture(buildingsTexture);
 }
 
-void Buildings::draw(Misc &misc, Player &player, std::string buildingName, sf::Texture& buildingsTexture, sf::Sprite& buildings, int buildingNumber, float objectX, float objectY)
+void BuildingManager::draw(Misc &misc, Player &player, std::string buildingName, sf::Texture& buildingsTexture, sf::Sprite& buildings, int buildingNumber, float objectX, float objectY)
 {
 	if (buildingNumber == 0)
 	{
@@ -66,7 +67,7 @@ void Buildings::draw(Misc &misc, Player &player, std::string buildingName, sf::T
 		std::cout << "*** Error: '" << buildingName << "' has failed to load. (invalid building number)." << std::endl;
 }
 
-void Buildings::door(Misc &misc, Player &player, std::string doorName, float doorX, float doorY)
+void BuildingManager::door(Misc &misc, Player &player, std::string doorName, float doorX, float doorY)
 {
 	sf::Vector2f newDoor(doorX, doorY);
 	float doorRadius = 10;

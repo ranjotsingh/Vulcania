@@ -5,7 +5,7 @@ Objective::Objective()
 	currentObj = 0;
 	part = 0;
 	subPart = 0;
-	name = "Quest Name";
+	name = "None";
 	objCurrentText = "None.";
 }
 
@@ -72,6 +72,7 @@ void Objective::initiate(Misc &misc, Player &player, Ped &tobias, Ped &lucius, P
 				tobias.reachingPoint = sf::Vector2f(639, tobias.getPosition().y);
 				lucius.reachingPoint = sf::Vector2f(625, lucius.getPosition().y);
 
+				misc.autoMode = true;
 				player.autoMove = true;
 				player.frozen = true;
 				player.direction = player.reachingPoint - player.getPosition();
@@ -307,7 +308,7 @@ void Objective::initiate(Misc &misc, Player &player, Ped &tobias, Ped &lucius, P
 
 					tobias.reachingPoint = sf::Vector2f(2330, tobias.getPosition().y);
 					tobias.direction = tobias.reachingPoint - tobias.getPosition();
-					tobias.movePedSpeed = 0.5f;
+					tobias.movePedSpeed = 0.75f;
 				}
 			}
 			if (part == 6)
@@ -361,7 +362,21 @@ void Objective::initiate(Misc &misc, Player &player, Ped &tobias, Ped &lucius, P
 					player.setPosition(player.prevPos.x, player.prevPos.y);
 			}
 
+			if (part >= 0)
+			{
+				lucius.setPosition(2686, 1797);
+				lucius.source.y = Misc::Direction::Right;
+				tobias.setPosition(2648, 1792);
+				tobias.source.y = Misc::Direction::Right;
+				shadow.setPosition(2782, 1775);
+				shadow.source.y = Misc::Direction::Down;
+			}
 			if (part == 0)
+			{
+				misc.autoMode = false;
+				part = 1;
+			}
+			else if (part == 1)
 			{
 			}
 		}
@@ -375,6 +390,7 @@ void Objective::initiate(Misc &misc, Player &player, Ped &tobias, Ped &lucius, P
 			}
 			else if (part == 1)
 			{
+				if (!misc.showArrow) { misc.showArrow = true; misc.arrowFlash = true; }
 				if (player.getPosition().x >= 810 && player.getPosition().x <= 851 && player.getPosition().y >= 510 && player.getPosition().y <= 538)
 				{
 					part = 2;
@@ -385,6 +401,7 @@ void Objective::initiate(Misc &misc, Player &player, Ped &tobias, Ped &lucius, P
 			}
 			else if (part == 2)
 			{
+				misc.autoMode = true;
 				player.source.y = Misc::Direction::Right;
 				player.frozen = true;
 				misc.showArrow = false;
@@ -409,7 +426,12 @@ void Objective::initiate(Misc &misc, Player &player, Ped &tobias, Ped &lucius, P
 			}
 			else if (part == 3)
 			{
+				misc.autoMode = false;
 				player.frozen = true;
+				courier.setPosition(player.getPosition().x + 26, player.getPosition().y);
+				courier.source.y = Misc::Direction::Left;
+				courier.source.x = 1;
+				courier.setTextureRect(sf::IntRect((int)courier.source.x * 32, (int)courier.source.y * 32, 32, 32));
 				if (subPart == 0)
 				{
 					misc.textInTextBox = "COURIER: Do you live here? I have a package for this address.";
@@ -434,8 +456,12 @@ void Objective::initiate(Misc &misc, Player &player, Ped &tobias, Ped &lucius, P
 				}
 			}
 		}
+		else if (currentObj == 6)
+		{
+		}
 		else
 		{
+			currentObj = -1;
 			name = "None";
 			objCurrentText = "None.";
 		}

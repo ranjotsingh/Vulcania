@@ -1,17 +1,16 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#include <fstream>
 #include <functional>
-#include <thread>
 
 #include "Player.h"
 #include "Menu.h"
 #include "Misc.h"
-#include "Objects.h"
-#include "Buildings.h"
+#include "ObjectManager.h"
+#include "BuildingManager.h"
 #include "Objective.h"
 #include "Ped.h"
+#include "Update.h"
 
 void loadingScreen(sf::RenderWindow &Window, Misc &misc)
 {
@@ -57,7 +56,7 @@ void inputs(Misc &misc, Player &player, Objective &objective, Ped &tobias, Ped &
 			{
 				std::cout << "*** Position: (" << player.getPosition().x << ", " << player.getPosition().y << ") | player.moving: " << player.moving << " | player.frozen: " << player.frozen << std::endl;
 				std::cout << "*** objective.currentObj: " << objective.currentObj << " | objective.part: " << objective.part << " | objective.subPart: " << objective.subPart << std::endl;
-				std::cout << courier.source.x << std::endl;
+				std::cout << "*** misc.autoMode: " << misc.autoMode << " | player.autoMove: " << player.autoMove << std::endl;
 			}
 			else if (input == "teleport")
 			{
@@ -94,12 +93,18 @@ void inputs(Misc &misc, Player &player, Objective &objective, Ped &tobias, Ped &
 
 int main()
 {
+	sf::Clock clock;
+	sf::Clock clockMenu;
+	sf::Clock clockFlash;
+	sf::Clock totalGameTime;
+
 	Misc misc;
 	Menu menu;
 	Player player;
-	Objects objects;
-	Buildings buildings;
+	ObjectManager objects;
+	BuildingManager buildings;
 	Objective objective;
+	Update update;
 
 	Ped courier;
 	Ped lucius;
@@ -108,11 +113,6 @@ int main()
 
 	std::cout << "*** " << misc.gameName << " is now running." << std::endl;
 
-	sf::Clock clock;
-	sf::Clock clockMenu;
-	sf::Clock clockFlash;
-	sf::Clock totalGameTime;
-
 	int backgroundCurrentFrame = 0;
 
 	float frameCounter = 0, switchFrame = 100, frameSpeed = 500;
@@ -120,28 +120,16 @@ int main()
 	float framePedMovementCounter = 0, switchPedMovementFrame = 100, framePedMovementSpeed = 500;
 	float frameFlashCounter = 0, switchFlashFrame = 100, frameFlashSpeed = 400;
 
-	sf::Image icon;
-	icon.loadFromFile("images/misc/icon.png");
-
 	sf::RenderWindow Window;
 	Window.create(sf::VideoMode((int)misc.screenDimensions.x, (int)misc.screenDimensions.y), misc.gameName, sf::Style::Titlebar | sf::Style::Close);
 	Window.setFramerateLimit(100);
 	Window.setKeyRepeatEnabled(false);
-	Window.setIcon(256, 256, icon.getPixelsPtr());
+	Window.setIcon(256, 256, misc.icon.getPixelsPtr());
 	Window.setActive(false);
 
 	sf::Thread loadingThread(std::bind(loadingScreen, std::ref(Window), std::ref(misc)));
 	loadingThread.launch();
 
-	std::string saveFileName = "save/save001.sav";
-	std::ifstream saveFile(saveFileName);
-	bool SavedGameExists;
-	if (saveFile)
-		SavedGameExists = true;
-	else
-		SavedGameExists = false;
-
-	sf::Texture pTexture;
 	sf::Texture mTexture;
 	sf::Sprite map;
 	sf::Texture bTexture;
@@ -151,7 +139,6 @@ int main()
 	sf::Texture lnTexture;
 	sf::Sprite logoname;
 	sf::Texture signsTexture;
-	sf::Texture boxesTexture;
 	sf::Sprite arrow;
 	sf::Sprite exclaim;
 	sf::Sprite objectivebox;
@@ -162,12 +149,10 @@ int main()
 	sf::Texture pedShadowTexture;
 	sf::Texture pedTobiasTexture;
 
-	sf::Texture Building;
 	sf::Texture Floor;
 	sf::Texture Floor2;
 	sf::Texture Floor3;
 	sf::Texture Background;
-	sf::Texture Object;
 	sf::Texture BoundaryV;
 	sf::Texture BoundaryH;
 
@@ -190,35 +175,35 @@ int main()
 	misc.loadBackground(Background, Grey);
 
 	sf::Sprite MainHouse;
-	buildings.load(Building, MainHouse);
+	buildings.load(buildings.Building, MainHouse);
 
 	sf::Sprite House0;
-	buildings.load(Building, House0);
+	buildings.load(buildings.Building, House0);
 	sf::Sprite House1;
-	buildings.load(Building, House1);
+	buildings.load(buildings.Building, House1);
 	sf::Sprite House2;
-	buildings.load(Building, House2);
+	buildings.load(buildings.Building, House2);
 	sf::Sprite House3;
-	buildings.load(Building, House3);
+	buildings.load(buildings.Building, House3);
 	sf::Sprite House4;
-	buildings.load(Building, House4);
+	buildings.load(buildings.Building, House4);
 
 	sf::Sprite Object0;
-	objects.load(Object, Object0);
+	objects.load(objects.Object, Object0);
 	sf::Sprite Object1;
-	objects.load(Object, Object1);
+	objects.load(objects.Object, Object1);
 	sf::Sprite Object2;
-	objects.load(Object, Object2);
+	objects.load(objects.Object, Object2);
 	sf::Sprite Object3;
-	objects.load(Object, Object3);
+	objects.load(objects.Object, Object3);
 	sf::Sprite Object4;
-	objects.load(Object, Object4);
+	objects.load(objects.Object, Object4);
 	sf::Sprite Object5;
-	objects.load(Object, Object5);
+	objects.load(objects.Object, Object5);
 	sf::Sprite Object6;
-	objects.load(Object, Object6);
+	objects.load(objects.Object, Object6);
 	sf::Sprite Object7;
-	objects.load(Object, Object7);
+	objects.load(objects.Object, Object7);
 
 	sf::Sprite BoundaryV0;
 	misc.loadBoundaryV(BoundaryV, BoundaryV0);
@@ -245,7 +230,6 @@ int main()
 	misc.loadBoundaryH(BoundaryH, BoundaryH6);
 
 	sf::View view;
-
 	view.reset(sf::FloatRect(0, 0, misc.screenDimensions.x, misc.screenDimensions.y));
 	view.setViewport(sf::FloatRect(0, 0, 1.0f, 1.0f));
 
@@ -254,14 +238,11 @@ int main()
 	bool updatePedMovementFrame = true;
 	bool updateFlashFrame = true;
 
-	if (!pTexture.loadFromFile("images/peds/Player.png")) { std::cout << "*** Error: Game failed to load 'Player' image." << std::endl; }
-
 	if (!mTexture.loadFromFile("images/map/Map.png")) { std::cout << "*** Error: Game failed to load 'Map' image." << std::endl; }
 	if (!bTexture.loadFromFile("images/misc/Background.png")) { std::cout << "*** Error: Game failed to load 'Background' image." << std::endl; }
 	if (!lTexture.loadFromFile("images/misc/Logo.png")) { std::cout << "*** Error: Game failed to load 'Logo' image." << std::endl; }
 	if (!lnTexture.loadFromFile("images/misc/Logoname.png")) { std::cout << "*** Error: Game failed to load 'Logoname' image." << std::endl; }
 	if (!signsTexture.loadFromFile("images/misc/signs.png")) { std::cout << "*** Error: Game failed to load 'signs' image." << std::endl; }
-	if (!boxesTexture.loadFromFile("images/boxes/boxes.png")) { std::cout << "*** Error: Game failed to load 'boxes' image." << std::endl; }
 
 	if (!pedCourierTexture.loadFromFile("images/peds/Courier.png")) { std::cout << "*** Error: Game failed to load 'Courier' image." << std::endl; }
 	if (!pedLuciusTexture.loadFromFile("images/peds/WhiteWolf.png")) { std::cout << "*** Error: Game failed to load 'WhiteWolf' image." << std::endl; }
@@ -270,15 +251,9 @@ int main()
 
 	if (!Background.loadFromFile("images/misc/grey.png")) { std::cout << "*** Error: Game failed to load 'grey' image." << std::endl; }
 
-	if (!Building.loadFromFile("images/map/buildings.png")) { std::cout << "*** Error: Game failed to load 'buildings' image." << std::endl; }
-	if (!Object.loadFromFile("images/map/misc.png")) { std::cout << "*** Error: Game failed to load 'misc' image." << std::endl; }
-
 	if (!Floor.loadFromFile("images/map/floor.png")) { std::cout << "*** Error: Game failed to load 'floor' image." << std::endl; }
 	if (!Floor2.loadFromFile("images/map/dirt.png")) { std::cout << "*** Error: Game failed to load 'dirt' image." << std::endl; }
 	if (!Floor3.loadFromFile("images/map/dirt2.png")) { std::cout << "*** Error: Game failed to load 'dirt2' image." << std::endl; }
-
-	player.setTexture(pTexture);
-	player.setPosition(620, 590);
 
 	map.setTexture(mTexture);
 
@@ -298,11 +273,11 @@ int main()
 	exclaim.setTexture(signsTexture);
 	exclaim.setTextureRect(sf::IntRect(15, 0, 20, 20));
 
-	objectivebox.setTexture(boxesTexture);
+	objectivebox.setTexture(misc.boxesTexture);
 	objectivebox.setTextureRect(sf::IntRect(0, 0, 200, 81));
 	objectivebox.setPosition(misc.screenDimensions.x - objectivebox.getGlobalBounds().width - 10, misc.screenDimensions.y - 75);
 
-	signbox.setTexture(boxesTexture);
+	signbox.setTexture(misc.boxesTexture);
 	signbox.setTextureRect(sf::IntRect(0, 147, 331, 488));
 	signbox.setPosition((misc.screenDimensions.x - signbox.getGlobalBounds().width) / 2, (misc.screenDimensions.y - signbox.getGlobalBounds().height) / 2);
 
@@ -317,20 +292,16 @@ int main()
 	textPressSpace.setPosition((misc.screenDimensions.x - textPressSpace.getGlobalBounds().width) / 2, misc.screenDimensions.y - 65);
 	misc.smooth(textPressSpace);
 
-	menu.textNewGame.setFont(misc.fontNoodle);
-	menu.textContinueGame.setFont(misc.fontNoodle);
-	menu.textOptions.setFont(misc.fontNoodle);
-	menu.textQuit.setFont(misc.fontNoodle);
-	menu.textMenuVersion.setFont(misc.fontNoodle);
 	menu.draw(misc);
 
-	misc.drawInTextBox.setFont(misc.fontMain);
-	misc.drawInTextBox_Outline1.setFont(misc.fontMain);
-	misc.drawInTextBox_Outline2.setFont(misc.fontMain);
-	misc.drawInTextBox_Outline3.setFont(misc.fontMain);
-	misc.drawInTextBox_Outline4.setFont(misc.fontMain);
 	misc.loadTextBox();
-	misc.textbox.setTexture(boxesTexture);
+
+	misc.textPlayerName.setString(player.name);
+	misc.textPlayerName.setFont(misc.fontNoodle);
+	misc.textPlayerName.setCharacterSize(19);
+	misc.textPlayerName.setColor(sf::Color(255, 255, 255));
+	misc.textPlayerName.setPosition(misc.screenDimensions.x - misc.textPlayerName.getGlobalBounds().width - 5, 1);
+	misc.smooth(misc.textPlayerName);
 
 	sf::Text textGameObjective(objective.name, misc.fontMain, 19);
 	textGameObjective.setColor(sf::Color(255, 215, 0));
@@ -386,8 +357,10 @@ int main()
 	sf::Thread inputThread(std::bind(&inputs, std::ref(misc), std::ref(player), std::ref(objective), std::ref(tobias), std::ref(lucius), std::ref(courier)));
 	inputThread.launch();
 
+	update.load(player, objective, misc);
+
 	loadingThread.terminate();
-	std::cout << "*** Load Time: " << totalGameTime.getElapsedTime().asSeconds() + 0.7 << " seconds.\n\n";
+	std::cout << "*** Load Time: " << totalGameTime.getElapsedTime().asSeconds() << " seconds.\n\n";
 
 	while (Window.isOpen())
 	{
@@ -419,10 +392,6 @@ int main()
 							misc.paused = false;
 							if (player.wasFrozen == false) { player.frozen = false; }
 							updateMenuFrame = false;
-							if (!SavedGameExists)
-							{
-								std::ofstream file(saveFileName);
-							}
 							if (objective.currentObj == 5 && objective.part == 0)
 							{
 								misc.showArrow = true;
@@ -470,6 +439,10 @@ int main()
 						player.frozen = true;
 						menu.textContinueGame.setColor(sf::Color(204, 204, 0));
 					}
+					else if (Event.key.code == sf::Keyboard::F5)
+					{
+						update.save(player, objective, misc);
+					}
 					else if (Event.key.code == sf::Keyboard::Space)
 					{
 						if (objective.currentObj == 5 && objective.part == 3 && objective.subPart >= 0 && objective.subPart <= 2)
@@ -481,15 +454,24 @@ int main()
 					{
 						if (objective.currentObj == 5 && objective.part == 3 && objective.subPart == 3)
 						{
-							sentence.erase(0, 1);
-							player.name = sentence.toAnsiString();
-							std::cout << "*** Player name has been set to '" << player.name << "'." << std::endl;
-							std::cout << "*** Game has saved information into the game save file." << std::endl;
-							misc.showSignBox = false;
-							player.frozen = false;
-							objective.currentObj++;
-							objective.part = 0;
-							misc.typing = false;
+							std::string str = sentence.toAnsiString();
+							if (isspace(str.at(0))) { str.erase(0, 1); }
+							if (str.length() >= 1)
+							{
+								str.erase(std::unique(str.begin(), str.end(),
+									[](char a, char b) { return a == ' ' && b == ' '; }), str.end());
+								player.name = str;
+								misc.textPlayerName.setString(player.name);
+								misc.textPlayerName.setPosition(misc.screenDimensions.x - misc.textPlayerName.getGlobalBounds().width - 5, misc.textPlayerName.getPosition().y);
+								std::cout << "*** Player name has been set to '" << player.name << "'." << std::endl;
+								misc.showSignBox = false;
+								player.frozen = false;
+								objective.currentObj++;
+								objective.part = 0;
+								objective.subPart = 0;
+								misc.typing = false;
+								update.save(player, objective, misc);
+							}
 						}
 					}
 				}
@@ -641,7 +623,7 @@ int main()
 		{
 			frameCounter = 0;
 			player.source.x++;
-			if (player.source.x * 32 >= (int)pTexture.getSize().x)
+			if (player.source.x * 32 >= (int)player.pTexture.getSize().x)
 				player.source.x = 0;
 		}
 
@@ -656,27 +638,27 @@ int main()
 		misc.drawFloor("DirtH0", Floor2, DirtH0, 0, 610, 540, Floor2.getSize().x * 15, Floor2.getSize().y * 1);
 		misc.drawFloor("DirtH1", Floor2, DirtH1, 0, 610, 1618, Floor2.getSize().x * 60, Floor2.getSize().y * 1);
 		misc.drawFloor("DirtH2", Floor2, DirtH2, 0, 610, 1056, Floor2.getSize().x * 60, Floor2.getSize().y * 1);
-		misc.drawFloor("DirtH3", Floor2, DirtH3, 0, 610, 702, Floor2.getSize().x * 10, Floor2.getSize().y * 1);
+		misc.drawFloor("DirtH3", Floor2, DirtH3, 0, 610, 702, Floor2.getSize().x * 15, Floor2.getSize().y * 1);
 		misc.drawFloor("DirtV0", Floor3, DirtV0, 0, 608, 542, Floor3.getSize().x * 1, Floor3.getSize().y * 25);
 
 		misc.drawBackground("Grey", Background, Grey, 0, 0, 0, misc.screenDimensions.x, misc.screenDimensions.y);
 
-		buildings.draw(misc, player, "Main House", Building, MainHouse, 0, 760, 420);
-		buildings.draw(misc, player, "House0", Building, House0, 1, 928, 431);
-		buildings.draw(misc, player, "House1", Building, House1, 2, 1072, 451);
-		buildings.draw(misc, player, "House2", Building, House2, 3, 787, 637);
-		buildings.draw(misc, player, "House3", Building, House3, 4, 884, 608);
-		buildings.draw(misc, player, "House4", Building, House4, 5, 1027, 604);
+		buildings.draw(misc, player, "Main House", buildings.Building, MainHouse, 0, 760, 420);
+		buildings.draw(misc, player, "House0", buildings.Building, House0, 1, 928, 431);
+		buildings.draw(misc, player, "House1", buildings.Building, House1, 2, 1072, 451);
+		buildings.draw(misc, player, "House2", buildings.Building, House2, 3, 787, 637);
+		buildings.draw(misc, player, "House3", buildings.Building, House3, 4, 884, 608);
+		buildings.draw(misc, player, "House4", buildings.Building, House4, 5, 1027, 604);
 		buildings.spawnDoors(misc, player);
 
-		objects.draw(misc, player, "Tree0", Object, Object0, 0, 693, 613, true);
-		objects.draw(misc, player, "Tree1", Object, Object4, 0, 2425, 1688, true);
-		objects.draw(misc, player, "Tree2", Object, Object5, 0, 2535, 1688, true);
-		objects.draw(misc, player, "Tree2", Object, Object6, 0, 2645, 1688, true);
-		objects.draw(misc, player, "Tree3", Object, Object7, 0, 2755, 1688, true);
-		objects.draw(misc, player, "DeadUncle", Object, Object1, 3, 2773, 1796, true);
-		objects.draw(misc, player, "Bush0", Object, Object2, 4, 2377, 1721, true);
-		objects.draw(misc, player, "Bush1", Object, Object3, 4, 2555, 1721, true);
+		objects.draw(misc, player, "Tree0", objects.Object, Object0, 0, 693, 613, true);
+		objects.draw(misc, player, "Tree1", objects.Object, Object4, 0, 2425, 1688, true);
+		objects.draw(misc, player, "Tree2", objects.Object, Object5, 0, 2535, 1688, true);
+		objects.draw(misc, player, "Tree2", objects.Object, Object6, 0, 2645, 1688, true);
+		objects.draw(misc, player, "Tree3", objects.Object, Object7, 0, 2755, 1688, true);
+		objects.draw(misc, player, "DeadUncle", objects.Object, Object1, 3, 2773, 1796, true);
+		objects.draw(misc, player, "Bush0", objects.Object, Object2, 4, 2377, 1721, true);
+		objects.draw(misc, player, "Bush1", objects.Object, Object3, 4, 2555, 1721, true);
 
 		misc.drawBoundaryV(player, "BoundaryV0", BoundaryV, BoundaryV0, 0, 0);
 		misc.drawBoundaryV(player, "BoundaryV1", BoundaryV, BoundaryV1, 0, 1000);
@@ -842,6 +824,10 @@ int main()
 			Window.draw(player);
 
 			Window.setView(Window.getDefaultView());
+			if (player.name != "Player.")
+			{
+				Window.draw(misc.textPlayerName);
+			}
 			if (misc.showTextBox == true)
 			{
 				//Window.draw(misc.textbox);

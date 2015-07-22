@@ -3,7 +3,12 @@
 
 Player::Player()
 {
-	name = "Player";
+	name = "Player.";
+
+	if (!pTexture.loadFromFile("images/peds/Player.png")) { std::cout << "*** Error: Game failed to load 'Player' image." << std::endl; }
+	setTexture(pTexture);
+
+	setPosition(620, 590);
 
 	moveSpeed = 100.0f;
 	movePedSpeed = 0.035f;

@@ -4,11 +4,13 @@
 #include "Player.h"
 #include "Misc.h"
 
-class Objects
+class ObjectManager
 {
 public:
-	Objects();
-	~Objects();
+	ObjectManager();
+	~ObjectManager();
+
+	sf::Texture Object;
 
 	void load(sf::Texture& objectsTexture, sf::Sprite& object);
 	void solid(Player &player, std::string objectName, float left, float right, float top, float bottom);

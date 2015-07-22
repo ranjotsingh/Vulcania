@@ -13,6 +13,10 @@ public:
 	sf::String version;
 	sf::Vector2f screenDimensions;
 
+	sf::Image icon;
+
+	sf::Texture boxesTexture;
+
 	int gamestate;
 	enum GameState { StartMenu, MainMenu, InGame };
 
@@ -20,6 +24,8 @@ public:
 
 	bool lockMode;
 	bool wallHack;
+
+	bool autoMode;
 
 	bool paused;
 
@@ -31,6 +37,8 @@ public:
 	bool arrowFlash;
 	bool showArrow;
 	bool showExclaim;
+
+	sf::Text textPlayerName;
 
 	void smooth(sf::Text &text);
 	sf::Sprite textbox;

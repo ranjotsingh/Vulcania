@@ -17,6 +17,12 @@ Menu::~Menu()
 
 void Menu::draw(Misc &misc)
 {
+	textNewGame.setFont(misc.fontNoodle);
+	textContinueGame.setFont(misc.fontNoodle);
+	textOptions.setFont(misc.fontNoodle);
+	textQuit.setFont(misc.fontNoodle);
+	textMenuVersion.setFont(misc.fontNoodle);
+
 	textNewGame.setString(menuNewGame);
 	textNewGame.setCharacterSize(40);
 	textNewGame.setColor(sf::Color(255, 255, 255));

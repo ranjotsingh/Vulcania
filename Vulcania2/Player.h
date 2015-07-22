@@ -10,6 +10,8 @@ public:
 
 	std::string name;
 
+	sf::Texture pTexture;
+
 	sf::Vector2f prevPos;
 	sf::Vector2f direction;
 	float moveSpeed;

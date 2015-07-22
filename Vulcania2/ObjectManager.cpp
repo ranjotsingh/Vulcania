@@ -1,25 +1,26 @@
-#include "Objects.h"
+#include "ObjectManager.h"
 
-Objects::Objects()
+ObjectManager::ObjectManager()
+{
+	if (!Object.loadFromFile("images/map/misc.png")) { std::cout << "*** Error: Game failed to load 'misc' image." << std::endl; }
+}
+
+ObjectManager::~ObjectManager()
 {
 }
 
-Objects::~Objects()
-{
-}
-
-void Objects::load(sf::Texture& objectsTexture, sf::Sprite& object)
+void ObjectManager::load(sf::Texture& objectsTexture, sf::Sprite& object)
 {
 	object.setTexture(objectsTexture);
 }
 
-void Objects::solid(Player &player, std::string objectName, float left, float right, float top, float bottom)
+void ObjectManager::solid(Player &player, std::string objectName, float left, float right, float top, float bottom)
 {
 	if (player.getPosition().x > left && player.getPosition().x < right && player.getPosition().y > top && player.getPosition().y < bottom)
 		player.setPosition(player.prevPos.x, player.prevPos.y);
 }
 
-void Objects::draw(Misc &misc, Player &player, std::string objectName, sf::Texture& objectsTexture, sf::Sprite& objects, int objectNumber, float objectX, float objectY, bool perm)
+void ObjectManager::draw(Misc &misc, Player &player, std::string objectName, sf::Texture& objectsTexture, sf::Sprite& objects, int objectNumber, float objectX, float objectY, bool perm)
 {
 	if (objectNumber == 0)
 	{

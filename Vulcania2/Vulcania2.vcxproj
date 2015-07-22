@@ -81,23 +81,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Buildings.cpp" />
+    <ClCompile Include="BuildingManager.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="Misc.cpp" />
     <ClCompile Include="Objective.cpp" />
-    <ClCompile Include="Objects.cpp" />
+    <ClCompile Include="ObjectManager.cpp" />
     <ClCompile Include="Ped.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Update.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Buildings.h" />
+    <ClInclude Include="BuildingManager.h" />
     <ClInclude Include="Menu.h" />
     <ClInclude Include="Misc.h" />
     <ClInclude Include="Objective.h" />
-    <ClInclude Include="Objects.h" />
+    <ClInclude Include="ObjectManager.h" />
     <ClInclude Include="Ped.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="Update.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -7,14 +7,19 @@ Misc::Misc()
 	screenDimensions.x = 1024;
 	screenDimensions.y = 768;
 
+	icon.loadFromFile("images/misc/icon.png");
+
 	gamestate = StartMenu;
 
 	lockMode = true;
 	wallHack = false;
 
-	paused = false;
+	autoMode = false;
 
+	paused = false;
 	typing = false;
+
+	if (!boxesTexture.loadFromFile("images/boxes/boxes.png")) { std::cout << "*** Error: Game failed to load 'boxes' image." << std::endl; }
 
 	showObjectiveBox = true;
 	showSignBox = false;
@@ -41,9 +46,16 @@ void Misc::smooth(sf::Text &text)
 }
 
 void Misc::loadTextBox()
-{	
+{
+	textbox.setTexture(boxesTexture);
 	textbox.setTextureRect(sf::IntRect(200, 0, 500, 146));
 	textbox.setPosition((screenDimensions.x - textbox.getGlobalBounds().width) / 2, screenDimensions.y - 30);
+
+	drawInTextBox.setFont(fontMain);
+	drawInTextBox_Outline1.setFont(fontMain);
+	drawInTextBox_Outline2.setFont(fontMain);
+	drawInTextBox_Outline3.setFont(fontMain);
+	drawInTextBox_Outline4.setFont(fontMain);
 
 	drawInTextBox.setString(textInTextBox);
 	drawInTextBox.setCharacterSize(18);

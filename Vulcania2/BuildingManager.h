@@ -4,11 +4,13 @@
 #include "Player.h"
 #include "Misc.h"
 
-class Buildings
+class BuildingManager
 {
 public:
-	Buildings();
-	~Buildings();
+	BuildingManager();
+	~BuildingManager();
+
+	sf::Texture Building;
 
 	void load(sf::Texture& buildingsTexture, sf::Sprite& buildings);
 	void draw(Misc &misc, Player &player, std::string buildingName, sf::Texture& buildingsTexture, sf::Sprite& buildings, int buildingNumber, float objectX, float objectY);
