@@ -33,6 +33,38 @@ void Objective::initiate(Misc &misc, Player &player, Ped &tobias, Ped &lucius, P
 		}
 		else if (currentObj == 1)
 		{
+			misc.showTextBox = true;
+			if (player.getPosition().x > 2401 && player.getPosition().x < 2710 && player.getPosition().y > 1054 && player.getPosition().y < 1056)
+				misc.textInTextBox = "TOBIAS: Damn! Are you serious? So, Lucius is four years now?";
+			else if (player.getPosition().x > 2072 && player.getPosition().x < 2401 && player.getPosition().y > 1054 && player.getPosition().y < 1056)
+				misc.textInTextBox = "YOU: I'd figure. He was just a little pup when we found him.";
+			else if (player.getPosition().x > 1838 && player.getPosition().x < 2072 && player.getPosition().y > 1054 && player.getPosition().y < 1056)
+				misc.textInTextBox = "TOBIAS: He's already grown too.";
+			else if (player.getPosition().x > 1589 && player.getPosition().x < 1838 && player.getPosition().y > 1054 && player.getPosition().y < 1056)
+				misc.textInTextBox = "YOU: Meh. I'm sure he'll only get bigger.";
+			else if (player.getPosition().x > 1364 && player.getPosition().x < 1589 && player.getPosition().y > 1054 && player.getPosition().y < 1056)
+				misc.textInTextBox = "TOBIAS: Shit... Maybe.";
+			else if (player.getPosition().x > 1186 && player.getPosition().x < 1364 && player.getPosition().y > 1054 && player.getPosition().y < 1056)
+				misc.textInTextBox = "";
+			else if (player.getPosition().x > 883 && player.getPosition().x < 1186 && player.getPosition().y > 1054 && player.getPosition().y < 1056)
+				misc.textInTextBox = "TOBIAS: Hey. So, what's up with Mila? I haven't seen her in a while.";
+			else if (player.getPosition().x > 605 && player.getPosition().x < 883 && player.getPosition().y > 1054 && player.getPosition().y < 1085)
+				misc.textInTextBox = "YOU: She's still in Tarad with her family. We'll see her at the wedding though.";
+			else if (player.getPosition().x > 605 && player.getPosition().x < 607 && player.getPosition().y > 1085 && player.getPosition().y < 1515)
+				misc.textInTextBox = "TOBIAS: Is she? God damn it. You better not abandon me again. I'll\n be bored as hell. I don't even know anyone else there.";
+			else if (player.getPosition().x > 605 && player.getPosition().x < 820 && player.getPosition().y > 1515 && player.getPosition().y < 1616)
+				misc.textInTextBox = "YOU: Oh, please. There'll be plenty of women running around. Just take your pick.";
+			else if (player.getPosition().x > 820 && player.getPosition().x < 1140 && player.getPosition().y > 1612 && player.getPosition().y < 1616)
+				misc.textInTextBox = "TOBIAS: Oh, you know damn well I will. But, don't let this Mila chick get into your head.";
+			else if (player.getPosition().x > 1140 && player.getPosition().x < 1370 && player.getPosition().y > 1565 && player.getPosition().y < 1840)
+				misc.textInTextBox = "YOU: Get into my head? What the fuck are you going on ab-...";
+			else if (player.getPosition().x > 1370 && player.getPosition().x < 1500 && player.getPosition().y > 1565 && player.getPosition().y < 1840)
+				misc.textInTextBox = "YOU: Wait! Lucius! Wait! ...where the hell is he going?";
+			else if (player.getPosition().x > 1500 && player.getPosition().x < 1550 && player.getPosition().y > 1565 && player.getPosition().y < 1840)
+				misc.textInTextBox = "TOBIAS: Come on! Let's go after him!";
+			else
+				misc.textInTextBox = "";
+
 			tobias.setTextureRect(sf::IntRect((int)tobias.source.x * 32, (int)tobias.source.y * 32, 32, 32));
 			lucius.setTextureRect(sf::IntRect((int)lucius.source.x * 32, (int)lucius.source.y * 32, 32, 32));
 			shadow.setTextureRect(sf::IntRect((int)shadow.source.x * 32, (int)shadow.source.y * 32, 32, 32));
@@ -330,6 +362,9 @@ void Objective::initiate(Misc &misc, Player &player, Ped &tobias, Ped &lucius, P
 		}
 		else if (currentObj == 2)
 		{
+			name = "Uncle Trent";
+			objCurrentText = "Find Lucius.";
+
 			tobias.setTextureRect(sf::IntRect((int)tobias.source.x * 32, (int)tobias.source.y * 32, 32, 32));
 			lucius.setTextureRect(sf::IntRect((int)lucius.source.x * 32, (int)lucius.source.y * 32, 32, 32));
 			shadow.setTextureRect(sf::IntRect((int)shadow.source.x * 32, (int)shadow.source.y * 32, 32, 32));
@@ -362,11 +397,17 @@ void Objective::initiate(Misc &misc, Player &player, Ped &tobias, Ped &lucius, P
 					player.setPosition(player.prevPos.x, player.prevPos.y);
 			}
 
+			if (misc.wallHack == false)
+			{
+				if (!(player.getPosition().x > 1240 && player.getPosition().x < 3055 && player.getPosition().y > 1565 && player.getPosition().y < 1840))
+					player.setPosition(player.prevPos.x, player.prevPos.y);
+			}
+
 			if (part >= 0)
 			{
 				lucius.setPosition(2686, 1797);
 				lucius.source.y = Misc::Direction::Right;
-				tobias.setPosition(2648, 1792);
+				tobias.setPosition(2648, 1797);
 				tobias.source.y = Misc::Direction::Right;
 				shadow.setPosition(2782, 1775);
 				shadow.source.y = Misc::Direction::Down;
@@ -374,6 +415,7 @@ void Objective::initiate(Misc &misc, Player &player, Ped &tobias, Ped &lucius, P
 			if (part == 0)
 			{
 				misc.autoMode = false;
+				misc.saveNow = true;
 				part = 1;
 			}
 			else if (part == 1)
@@ -382,14 +424,15 @@ void Objective::initiate(Misc &misc, Player &player, Ped &tobias, Ped &lucius, P
 		}
 		else if (currentObj == 5)
 		{
+			name = "Did You Get The Memo?";
 			if (part == 0)
 			{
-				name = "Did You Get The Memo?";
 				objCurrentText = "Go home.";
 				part = 1;
 			}
 			else if (part == 1)
 			{
+				objCurrentText = "Go home.";
 				if (!misc.showArrow) { misc.showArrow = true; misc.arrowFlash = true; }
 				if (player.getPosition().x >= 810 && player.getPosition().x <= 851 && player.getPosition().y >= 510 && player.getPosition().y <= 538)
 				{
@@ -401,6 +444,7 @@ void Objective::initiate(Misc &misc, Player &player, Ped &tobias, Ped &lucius, P
 			}
 			else if (part == 2)
 			{
+				objCurrentText = "Go home.";
 				misc.autoMode = true;
 				player.source.y = Misc::Direction::Right;
 				player.frozen = true;
@@ -426,6 +470,7 @@ void Objective::initiate(Misc &misc, Player &player, Ped &tobias, Ped &lucius, P
 			}
 			else if (part == 3)
 			{
+				objCurrentText = "Go home.";
 				misc.autoMode = false;
 				player.frozen = true;
 				courier.setPosition(player.getPosition().x + 26, player.getPosition().y);
@@ -439,11 +484,21 @@ void Objective::initiate(Misc &misc, Player &player, Ped &tobias, Ped &lucius, P
 				}
 				else if (subPart == 1)
 				{
+					misc.drawInTextBox.setStyle(sf::Text::Italic);
+					misc.drawInTextBox_Outline1.setStyle(sf::Text::Italic);
+					misc.drawInTextBox_Outline2.setStyle(sf::Text::Italic);
+					misc.drawInTextBox_Outline3.setStyle(sf::Text::Italic);
+					misc.drawInTextBox_Outline4.setStyle(sf::Text::Italic);
 					misc.textInTextBox = "COURIER hands you the package.";
 					misc.showTextBox = true;
 				}
 				else if (subPart == 2)
 				{
+					misc.drawInTextBox.setStyle(sf::Text::Regular);
+					misc.drawInTextBox_Outline1.setStyle(sf::Text::Regular);
+					misc.drawInTextBox_Outline2.setStyle(sf::Text::Regular);
+					misc.drawInTextBox_Outline3.setStyle(sf::Text::Regular);
+					misc.drawInTextBox_Outline4.setStyle(sf::Text::Regular);
 					misc.textInTextBox = "COURIER: Sign here with your name.";
 					misc.showTextBox = true;
 				}
@@ -458,6 +513,11 @@ void Objective::initiate(Misc &misc, Player &player, Ped &tobias, Ped &lucius, P
 		}
 		else if (currentObj == 6)
 		{
+			name = "Did You Get The Memo?";
+			if (part == 0)
+			{
+				objCurrentText = "None.";
+			}
 		}
 		else
 		{

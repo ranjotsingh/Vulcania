@@ -21,7 +21,7 @@ void loadingScreen(sf::RenderWindow &Window, Misc &misc)
 	Window.display();
 }
 
-void inputs(Misc &misc, Player &player, Objective &objective, Ped &tobias, Ped &lucius, Ped &courier)
+void inputs(Misc &misc, Player &player, Objective &objective, Update &update, Ped &tobias, Ped &lucius, Ped &courier)
 {
 	std::string input;
 	while (std::cin >> input)
@@ -84,7 +84,20 @@ void inputs(Misc &misc, Player &player, Objective &objective, Ped &tobias, Ped &
 				objective.part = 0;
 				objective.subPart = 0;
 				misc.typing = false;
+				player.wasFrozen = false;
+				player.autoMove = false;
 				std::cout << "*** Objective set to " << objective.currentObj << "." << std::endl;
+			}
+			else if (input == "deletesave")
+			{
+				if (remove(update.saveFileName.c_str()) != 0)
+					perror("Error deleting save file");
+				else
+					puts("Save file successfully deleted.");
+			}
+			else if (input == "load")
+			{
+				update.load(player, objective, misc);
 			}
 			else { std::cout << "*** Invalid command." << std::endl; }
 		}
@@ -302,6 +315,30 @@ int main()
 	misc.textPlayerName.setColor(sf::Color(255, 255, 255));
 	misc.textPlayerName.setPosition(misc.screenDimensions.x - misc.textPlayerName.getGlobalBounds().width - 5, 1);
 	misc.smooth(misc.textPlayerName);
+	misc.textPlayerName_Outline1.setString(player.name);
+	misc.textPlayerName_Outline1.setFont(misc.fontNoodle);
+	misc.textPlayerName_Outline1.setCharacterSize(misc.textPlayerName.getCharacterSize());
+	misc.textPlayerName_Outline1.setColor(sf::Color(0, 0, 0));
+	misc.textPlayerName_Outline1.setPosition(misc.textPlayerName.getPosition().x - 1, misc.textPlayerName.getPosition().y);
+	misc.smooth(misc.textPlayerName_Outline1);
+	misc.textPlayerName_Outline2.setString(player.name);
+	misc.textPlayerName_Outline2.setFont(misc.fontNoodle);
+	misc.textPlayerName_Outline2.setCharacterSize(misc.textPlayerName.getCharacterSize());
+	misc.textPlayerName_Outline2.setColor(sf::Color(0, 0, 0));
+	misc.textPlayerName_Outline2.setPosition(misc.textPlayerName.getPosition().x + 1, misc.textPlayerName.getPosition().y);
+	misc.smooth(misc.textPlayerName_Outline2);
+	misc.textPlayerName_Outline3.setString(player.name);
+	misc.textPlayerName_Outline3.setFont(misc.fontNoodle);
+	misc.textPlayerName_Outline3.setCharacterSize(misc.textPlayerName.getCharacterSize());
+	misc.textPlayerName_Outline3.setColor(sf::Color(0, 0, 0));
+	misc.textPlayerName_Outline3.setPosition(misc.textPlayerName.getPosition().x, misc.textPlayerName.getPosition().y - 1);
+	misc.smooth(misc.textPlayerName_Outline3);
+	misc.textPlayerName_Outline4.setString(player.name);
+	misc.textPlayerName_Outline4.setFont(misc.fontNoodle);
+	misc.textPlayerName_Outline4.setCharacterSize(misc.textPlayerName.getCharacterSize());
+	misc.textPlayerName_Outline4.setColor(sf::Color(0, 0, 0));
+	misc.textPlayerName_Outline4.setPosition(misc.textPlayerName.getPosition().x, misc.textPlayerName.getPosition().y + 1);
+	misc.smooth(misc.textPlayerName_Outline4);
 
 	sf::Text textGameObjective(objective.name, misc.fontMain, 19);
 	textGameObjective.setColor(sf::Color(255, 215, 0));
@@ -354,7 +391,7 @@ int main()
 	text.setColor(sf::Color(0, 0, 0));
 	sf::String sentence;
 
-	sf::Thread inputThread(std::bind(&inputs, std::ref(misc), std::ref(player), std::ref(objective), std::ref(tobias), std::ref(lucius), std::ref(courier)));
+	sf::Thread inputThread(std::bind(&inputs, std::ref(misc), std::ref(player), std::ref(objective), std::ref(update), std::ref(tobias), std::ref(lucius), std::ref(courier)));
 	inputThread.launch();
 
 	update.load(player, objective, misc);
@@ -455,14 +492,28 @@ int main()
 						if (objective.currentObj == 5 && objective.part == 3 && objective.subPart == 3)
 						{
 							std::string str = sentence.toAnsiString();
-							if (isspace(str.at(0))) { str.erase(0, 1); }
 							if (str.length() >= 1)
 							{
 								str.erase(std::unique(str.begin(), str.end(),
 									[](char a, char b) { return a == ' ' && b == ' '; }), str.end());
+								if (isspace(str.at(0))) { str.erase(0, 1); }
+								if (isspace(str.at(str.length() - 1))) { str.erase(str.length() - 1, 1); }
 								player.name = str;
 								misc.textPlayerName.setString(player.name);
+								misc.textPlayerName_Outline1.setString(player.name);
+								misc.textPlayerName_Outline2.setString(player.name);
+								misc.textPlayerName_Outline3.setString(player.name);
+								misc.textPlayerName_Outline4.setString(player.name);
 								misc.textPlayerName.setPosition(misc.screenDimensions.x - misc.textPlayerName.getGlobalBounds().width - 5, misc.textPlayerName.getPosition().y);
+								misc.textPlayerName_Outline1.setPosition(misc.textPlayerName.getPosition().x - 1, misc.textPlayerName.getPosition().y);
+								misc.textPlayerName_Outline2.setPosition(misc.textPlayerName.getPosition().x + 1, misc.textPlayerName.getPosition().y);
+								misc.textPlayerName_Outline3.setPosition(misc.textPlayerName.getPosition().x, misc.textPlayerName.getPosition().y - 1);
+								misc.textPlayerName_Outline4.setPosition(misc.textPlayerName.getPosition().x, misc.textPlayerName.getPosition().y + 1);
+								misc.smooth(misc.textPlayerName);
+								misc.smooth(misc.textPlayerName_Outline1);
+								misc.smooth(misc.textPlayerName_Outline2);
+								misc.smooth(misc.textPlayerName_Outline3);
+								misc.smooth(misc.textPlayerName_Outline4);
 								std::cout << "*** Player name has been set to '" << player.name << "'." << std::endl;
 								misc.showSignBox = false;
 								player.frozen = false;
@@ -592,7 +643,7 @@ int main()
 			player.source.x = 1;
 		}
 
-		if (misc.gamestate == Misc::GameState::InGame && misc.showTextBox == true && misc.paused == false)
+		if (misc.gamestate == Misc::GameState::InGame && misc.showTextBox == true && misc.paused == false && player.autoMove == false)
 		{
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
 			{
@@ -701,7 +752,7 @@ int main()
 		background.setTextureRect(sf::IntRect(0, backgroundCurrentFrame * 600, (int)misc.screenDimensions.x, (int)misc.screenDimensions.y));
 
 		misc.drawInTextBox.setString(misc.textInTextBox);
-		misc.drawInTextBox.setPosition((misc.textbox.getLocalBounds().width - misc.drawInTextBox.getGlobalBounds().width) / 2 + misc.textbox.getPosition().x, misc.screenDimensions.y - 30);
+		misc.drawInTextBox.setPosition((misc.textbox.getLocalBounds().width - misc.drawInTextBox.getGlobalBounds().width) / 2 + misc.textbox.getPosition().x, misc.screenDimensions.y - misc.drawInTextBox.getGlobalBounds().height - 10);
 		misc.smooth(misc.drawInTextBox);
 		misc.drawInTextBox_Outline1.setString(misc.textInTextBox);
 		misc.drawInTextBox_Outline1.setPosition(misc.drawInTextBox.getPosition().x + 1, misc.drawInTextBox.getPosition().y);
@@ -747,6 +798,12 @@ int main()
 		textgameObjectiveCurrent_Outline4.setString(objective.objCurrentText);
 		textgameObjectiveCurrent_Outline4.setPosition(textgameObjectiveCurrent.getPosition().x, textgameObjectiveCurrent.getPosition().y + 1);
 		misc.smooth(textgameObjectiveCurrent_Outline4);
+
+		if (misc.saveNow == true)
+		{
+			update.save(player, objective, misc);
+			misc.saveNow = false;
+		}
 
 		if (misc.gamestate == Misc::GameState::StartMenu)
 		{
@@ -826,6 +883,10 @@ int main()
 			Window.setView(Window.getDefaultView());
 			if (player.name != "Player.")
 			{
+				Window.draw(misc.textPlayerName_Outline1);
+				Window.draw(misc.textPlayerName_Outline2);
+				Window.draw(misc.textPlayerName_Outline3);
+				Window.draw(misc.textPlayerName_Outline4);
 				Window.draw(misc.textPlayerName);
 			}
 			if (misc.showTextBox == true)

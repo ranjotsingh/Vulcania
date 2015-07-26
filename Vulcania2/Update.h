@@ -2,8 +2,8 @@
 #include <iostream>
 #include <fstream>
 #include "Player.h"
-#include "Objective.h"
 #include "Misc.h"
+#include "Objective.h"
 
 class Update
 {

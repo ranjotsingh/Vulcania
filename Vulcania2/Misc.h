@@ -28,8 +28,9 @@ public:
 	bool autoMode;
 
 	bool paused;
-
 	bool typing;
+
+	bool saveNow;
 
 	bool showObjectiveBox;
 	bool showSignBox;
@@ -39,6 +40,10 @@ public:
 	bool showExclaim;
 
 	sf::Text textPlayerName;
+	sf::Text textPlayerName_Outline1;
+	sf::Text textPlayerName_Outline2;
+	sf::Text textPlayerName_Outline3;
+	sf::Text textPlayerName_Outline4;
 
 	void smooth(sf::Text &text);
 	sf::Sprite textbox;
@@ -66,4 +71,6 @@ public:
 	sf::Font fontMain;
 	sf::Font fontNoodle;
 	sf::Font fontDaniel;
+
+	bool to_bool(std::string const& s) { return s != "0"; }
 };

@@ -15,34 +15,37 @@ void Update::load(Player &player, Objective &objective, Misc &misc)
 	std::ifstream saveFile(saveFileName);
 	if (saveFile.is_open())
 	{
-		float x, y;
-		while (saveFile
-			>> player.name
-			>> player.source.y
-			>> x
-			>> y
-			>> player.frozen
-			>> player.autoMove
-			>> misc.autoMode
-			>> objective.currentObj
-			>> objective.part
-			>> objective.subPart
-		);
-		player.setPosition(x, y);
+		int i = 0;
+		std::string str;
+		while (getline(saveFile, str))
+		{
+			if (i == 0) { player.name = str; }
+			else if (i == 1) { player.source.y = std::stoi(str); }
+			else if (i == 2) { player.setPosition(std::stof(str), player.getPosition().y); }
+			else if (i == 3) { player.setPosition(player.getPosition().x, std::stof(str)); }
+			else if (i == 4) { player.frozen = misc.to_bool(str); }
+			else if (i == 5) { player.autoMove = misc.to_bool(str); }
+			else if (i == 6) { misc.autoMode = misc.to_bool(str); }
+			else if (i == 7) { objective.currentObj = std::stoi(str); }
+			else if (i == 8) { objective.part = std::stoi(str); }
+			else if (i == 9) { objective.subPart = std::stoi(str); }
+			++i;
+		}
 		misc.textPlayerName.setString(player.name);
+		misc.textPlayerName_Outline1.setString(player.name);
+		misc.textPlayerName_Outline2.setString(player.name);
+		misc.textPlayerName_Outline3.setString(player.name);
+		misc.textPlayerName_Outline4.setString(player.name);
 		misc.textPlayerName.setPosition(misc.screenDimensions.x - misc.textPlayerName.getGlobalBounds().width - 5, misc.textPlayerName.getPosition().y);
-		/*
-		std::cout << player.name << std::endl;
-		std::cout << player.source.y << std::endl;
-		std::cout << player.getPosition().x << std::endl;
-		std::cout << player.getPosition().y << std::endl;
-		std::cout << player.frozen << std::endl;
-		std::cout << player.autoMove << std::endl;
-		std::cout << misc.autoMode << std::endl;
-		std::cout << objective.currentObj << std::endl;
-		std::cout << objective.part << std::endl;
-		std::cout << objective.subPart << std::endl;
-		*/
+		misc.textPlayerName_Outline1.setPosition(misc.textPlayerName.getPosition().x - 1, misc.textPlayerName.getPosition().y);
+		misc.textPlayerName_Outline2.setPosition(misc.textPlayerName.getPosition().x + 1, misc.textPlayerName.getPosition().y);
+		misc.textPlayerName_Outline3.setPosition(misc.textPlayerName.getPosition().x, misc.textPlayerName.getPosition().y - 1);
+		misc.textPlayerName_Outline4.setPosition(misc.textPlayerName.getPosition().x, misc.textPlayerName.getPosition().y + 1);
+		misc.smooth(misc.textPlayerName);
+		misc.smooth(misc.textPlayerName_Outline1);
+		misc.smooth(misc.textPlayerName_Outline2);
+		misc.smooth(misc.textPlayerName_Outline3);
+		misc.smooth(misc.textPlayerName_Outline4);
 	}
 	else
 		std::cout << "*** Game did not find a saved game file." << std::endl;

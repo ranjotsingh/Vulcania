@@ -19,6 +19,8 @@ Misc::Misc()
 	paused = false;
 	typing = false;
 
+	saveNow = false;
+
 	if (!boxesTexture.loadFromFile("images/boxes/boxes.png")) { std::cout << "*** Error: Game failed to load 'boxes' image." << std::endl; }
 
 	showObjectiveBox = true;
@@ -31,7 +33,7 @@ Misc::Misc()
 	textInTextBox = "";
 	showTextBox = false;
 
-	if (!fontMain.loadFromFile("fonts/tahoma.ttf")) { std::cout << "*** Error: Game failed to load 'tahoma' font." << std::endl; }
+	if (!fontMain.loadFromFile("fonts/FRAMDCN.ttf")) { std::cout << "*** Error: Game failed to load 'FRAMDCN' font." << std::endl; }
 	if (!fontNoodle.loadFromFile("fonts/noodle.ttf")) { std::cout << "*** Error: Game failed to load 'noodle' font." << std::endl; }
 	if (!fontDaniel.loadFromFile("fonts/Daniel-Black.otf")) { std::cout << "*** Error: Game failed to load 'Daniel-Black' font." << std::endl; }
 }
@@ -58,9 +60,9 @@ void Misc::loadTextBox()
 	drawInTextBox_Outline4.setFont(fontMain);
 
 	drawInTextBox.setString(textInTextBox);
-	drawInTextBox.setCharacterSize(18);
+	drawInTextBox.setCharacterSize(20);
 	drawInTextBox.setColor(sf::Color(255, 255, 255));
-	drawInTextBox.setPosition((textbox.getGlobalBounds().width - drawInTextBox.getGlobalBounds().width) / 2 + textbox.getPosition().x, screenDimensions.y - 30);
+	drawInTextBox.setPosition((textbox.getGlobalBounds().width - drawInTextBox.getGlobalBounds().width) / 2 + textbox.getPosition().x, screenDimensions.y - 60);
 	smooth(drawInTextBox);
 	drawInTextBox_Outline1.setString(textInTextBox);
 	drawInTextBox_Outline1.setCharacterSize(drawInTextBox.getCharacterSize());
